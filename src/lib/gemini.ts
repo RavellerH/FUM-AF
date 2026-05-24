@@ -36,7 +36,7 @@ export async function fileToText(file: File, password?: string): Promise<string>
   if (ext === 'xlsx' || ext === 'xls') {
     const opts: XLSX.ParsingOptions = { type: 'array', sheetRows: 1000 };
     if (password) opts.password = password;
-    const workbook = XLSX.read(buffer, opts);
+    const workbook = XLSX.read(new Uint8Array(buffer), opts);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     return XLSX.utils.sheet_to_csv(sheet);
   }
