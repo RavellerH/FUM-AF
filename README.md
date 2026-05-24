@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# FUM-AF — Personal Finance Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal finance web app for importing, categorizing, and analyzing Indonesian bank statements (BCA, Mandiri, etc.). Built for one user, runs entirely in the browser, data stored in Supabase.
 
-Currently, two official plugins are available:
+**Live app:** https://ravellerh.github.io/FUM-AF
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## What it does
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Upload bank statements** — drag-and-drop PDF or Excel files; password-protected PDFs supported
+- **AI-powered parsing** — Gemini extracts transactions (date, amount, currency, description, type) from raw statement text
+- **Categorize transactions** — click any category or type badge in the table to edit it inline; 21 categories available
+- **Filter & browse** — filter by month, transaction type (income/expense), or category
+- **Date-grouped view** — transactions are grouped by date with a header row showing day and count, making bulk annotation easy
+- **Dashboard & summaries** — monthly income vs. expense charts and per-category breakdowns
+- **Secure** — email whitelist via Supabase Auth; only approved accounts can log in
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Layer | Tech |
+|---|---|
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Tailwind CSS |
+| Backend / DB | Supabase (PostgreSQL + Auth) |
+| AI parsing | Google Gemini API |
+| PDF parsing | pdf.js |
+| Excel parsing | SheetJS (xlsx) |
+| Charts | Recharts |
+| Hosting | GitHub Pages |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Local development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env.local   # fill in your keys
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Required environment variables:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_GEMINI_API_KEY=
+VITE_ALLOWED_EMAIL=
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Deployment
+
+Pushes to `main` automatically deploy to GitHub Pages via GitHub Actions. The workflow builds the Vite app and publishes `./dist` using `peaceiris/actions-gh-pages`.
+
+Secrets required in the repository settings: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`, `VITE_ALLOWED_EMAIL`.
+
+## Project structure
+
+```
+src/
+  components/
+    Dashboard/       # charts and summary cards
+    Transactions/    # table, filters, inline editing
+    Upload/          # drag-and-drop, PDF/Excel parsing, Gemini call
+    shared/          # Spinner, ErrorBanner, etc.
+  hooks/             # useAuth, useTransactions, useCategories, useSummaries
+  lib/               # supabase client, gemini client
+  types/             # shared TypeScript types
 ```
