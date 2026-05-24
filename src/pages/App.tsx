@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthGuard } from '../components/Auth/AuthGuard';
+import { PasswordGate } from '../components/Auth/PasswordGate';
 import { Navbar } from '../components/shared/Navbar';
 import { DashboardPage } from '../components/Dashboard/DashboardPage';
 import { UploadPage } from '../components/Upload/UploadPage';
@@ -8,6 +9,7 @@ import { SettingsPage } from '../components/Settings/SettingsPage';
 
 export default function App() {
   return (
+    <PasswordGate>
     <HashRouter>
       <AuthGuard>
         <div className="min-h-screen bg-gray-50">
@@ -22,5 +24,6 @@ export default function App() {
         </div>
       </AuthGuard>
     </HashRouter>
+    </PasswordGate>
   );
 }
