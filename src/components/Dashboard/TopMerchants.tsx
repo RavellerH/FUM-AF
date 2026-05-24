@@ -1,7 +1,7 @@
 import type { Transaction } from '../../types';
 
 export function TopMerchants({ transactions }: { transactions: Transaction[] }) {
-  const sorted = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = [...transactions].sort((a, b) => b.amount - a.amount);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
