@@ -1,7 +1,7 @@
 import type { Transaction } from '../../types';
 
 export function TopMerchants({ transactions }: { transactions: Transaction[] }) {
-  const expenses = transactions.filter(t => t.type === 'expense');
+  const expenses = transactions.filter(t => t.type === 'expense' && !['Internal Transfer', 'Housing'].includes(t.category));
   const map = new Map<string, number>();
   for (const t of expenses) {
     map.set(t.description ?? 'Unknown', (map.get(t.description ?? 'Unknown') ?? 0) + t.amount);

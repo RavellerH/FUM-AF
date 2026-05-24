@@ -2,6 +2,9 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Summary, Transaction } from '../types';
 
+const EXCLUDE_FROM_EXPENSE = ['Internal Transfer', 'Housing'];
+const INCOME_CATEGORIES = ['Family'];
+
 export function useSummary() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,12 +41,31 @@ export function useSummary() {
     if (txErr) throw txErr;
 
     const rows = (txns ?? []) as Transaction[];
-    const total_income = rows.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const total_expense = rows.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+
+    // Only count real income categories (Family, Freelance, Reimbursement, Refund)
+    const total_income = rows
+      .filter(t => t.type === 'income' && INCOME_CATEGORIES.includes(t.category))
+      .reduce((s, t) => s + t.amount, 0);
+
+    // Exclude passthrough categories from expenses
+    const total_expense = rows
+      .filter(t => t.type === 'expense' && !EXCLUDE_FROM_EXPENSE.includes(t.category))
+      .reduce((s, t) => s + t.amount, 0);
+
+    // Rent tracked separately in by_category with special key
+    const total_rent = rows
+      .filter(t => t.type === 'expense' && t.category === 'Housing')
+      .reduce((s, t) => s + t.amount, 0);
+
     const by_category = rows.reduce<Record<string, number>>((acc, t) => {
-      if (t.type === 'expense') acc[t.category] = (acc[t.category] ?? 0) + t.amount;
+      if (t.type === 'expense' && !EXCLUDE_FROM_EXPENSE.includes(t.category)) {
+        acc[t.category] = (acc[t.category] ?? 0) + t.amount;
+      }
       return acc;
     }, {});
+
+    // Store rent in by_category with a reserved key so DashboardPage can read it
+    if (total_rent > 0) by_category['__rent'] = total_rent;
 
     const { data, error } = await supabase
       .from('summaries')
