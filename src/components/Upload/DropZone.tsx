@@ -7,7 +7,7 @@ interface Props {
 
 export function DropZone({ onFile, disabled }: Props) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: { 'text/csv': ['.csv'], 'application/vnd.ms-excel': ['.xls'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] },
+    accept: { 'text/csv': ['.csv'], 'application/vnd.ms-excel': ['.xls'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'], 'application/pdf': ['.pdf'] },
     maxFiles: 1,
     disabled,
     onDropAccepted: ([file]) => onFile(file),
@@ -27,7 +27,7 @@ export function DropZone({ onFile, disabled }: Props) {
       <p className="text-sm font-medium text-gray-700">
         {isDragActive ? 'Drop the file here' : 'Drag & drop a CSV or Excel file'}
       </p>
-      <p className="mt-1 text-xs text-gray-400">or click to browse — .csv, .xls, .xlsx</p>
+      <p className="mt-1 text-xs text-gray-400">or click to browse — .csv, .xls, .xlsx, .pdf</p>
     </div>
   );
 }

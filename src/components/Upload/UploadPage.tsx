@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
+import { useFilePassword } from '../../hooks/useFilePassword';
 import { fileToText, parseTransactionsWithGemini } from '../../lib/gemini';
 import type { ParsedTransaction } from '../../types';
 import { DropZone } from './DropZone';
@@ -17,6 +18,7 @@ export function UploadPage() {
   const { session } = useAuth();
   const { insertTransactions } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
+  const { password } = useFilePassword();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>('idle');
@@ -29,7 +31,7 @@ export function UploadPage() {
     setError(null);
     setFile(f);
     try {
-      const text = await fileToText(f);
+      const text = await fileToText(f, password || undefined);
       setRawText(text);
       setStep('previewing');
     } catch (e) {
@@ -82,49 +84,49 @@ export function UploadPage() {
 
       {error && <div className="mb-4"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
 
-      {(step === 'parsing' || step === 'saving' || step === 'done') && (
-        <div className="mb-4">
-          <ParseProgress
-            stage={step === 'parsing' ? 'parsing' : step === 'saving' ? 'saving' : 'done'}
-            count={parsed.length}
-          />
-        </div>
-      )}
-
       {step === 'idle' && (
         <DropZone onFile={handleFile} />
       )}
 
-      {(step === 'previewing' || step === 'confirming') && file && (
+      {(step === 'previewing' || step === 'parsing' || step === 'confirming' || step === 'saving' || step === 'done') && file && (
         <div className="flex flex-col gap-4">
-          <RawPreview text={rawText} fileName={file.name} />
+          {(step === 'parsing' || step === 'saving' || step === 'done') && (
+            <ParseProgress
+              stage={step === 'parsing' ? 'parsing' : step === 'saving' ? 'saving' : 'done'}
+              count={parsed.length}
+            />
+          )}
+
+          {step !== 'done' && <RawPreview text={rawText} fileName={file.name} />}
 
           {step === 'confirming' && <ParsedPreviewTable transactions={parsed} />}
 
-          <div className="flex gap-3">
-            <button
-              onClick={reset}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            {step === 'previewing' && (
+          {(step === 'previewing' || step === 'confirming') && (
+            <div className="flex gap-3">
               <button
-                onClick={handleParse}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                onClick={reset}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Parse with Gemini
+                Cancel
               </button>
-            )}
-            {step === 'confirming' && (
-              <button
-                onClick={handleConfirm}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-              >
-                Save {parsed.length} transactions
-              </button>
-            )}
-          </div>
+              {step === 'previewing' && (
+                <button
+                  onClick={handleParse}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Parse with Gemini
+                </button>
+              )}
+              {step === 'confirming' && (
+                <button
+                  onClick={handleConfirm}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                >
+                  Save {parsed.length} transactions
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
