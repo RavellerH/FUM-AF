@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
+import { useFilePassword } from '../../hooks/useFilePassword';
 import { fileToText, parseTransactionsWithGemini } from '../../lib/gemini';
 import type { ParsedTransaction } from '../../types';
 import { DropZone } from './DropZone';
@@ -17,6 +18,7 @@ export function UploadPage() {
   const { session } = useAuth();
   const { insertTransactions } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
+  const { password } = useFilePassword();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>('idle');
@@ -29,7 +31,7 @@ export function UploadPage() {
     setError(null);
     setFile(f);
     try {
-      const text = await fileToText(f);
+      const text = await fileToText(f, password || undefined);
       setRawText(text);
       setStep('previewing');
     } catch (e) {

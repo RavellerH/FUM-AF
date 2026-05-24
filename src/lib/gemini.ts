@@ -4,19 +4,46 @@ import type { ParsedTransaction } from '../types';
 
 const gemini = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY as string);
 
-export async function fileToText(file: File): Promise<string> {
+async function pdfToText(buffer: ArrayBuffer, password?: string): Promise<string> {
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.mjs',
+    import.meta.url,
+  ).toString();
+
+  const loadingTask = pdfjsLib.getDocument({
+    data: new Uint8Array(buffer),
+    ...(password ? { password } : {}),
+  });
+
+  const pdf = await loadingTask.promise;
+  const pages: string[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    pages.push(content.items.map(item => ('str' in item ? item.str : '')).join(' '));
+  }
+  return pages.join('\n');
+}
+
+export async function fileToText(file: File, password?: string): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase();
+  const buffer = await file.arrayBuffer();
+
   if (ext === 'csv') {
-    return file.text();
+    return new TextDecoder().decode(buffer);
   }
   if (ext === 'xlsx' || ext === 'xls') {
-    const buffer = await file.arrayBuffer();
-    // Cap at 1000 rows to avoid oversized prompts
-    const workbook = XLSX.read(buffer, { type: 'array', sheetRows: 1000 });
+    const opts: XLSX.ParsingOptions = { type: 'array', sheetRows: 1000 };
+    if (password) opts.password = password;
+    const workbook = XLSX.read(buffer, opts);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     return XLSX.utils.sheet_to_csv(sheet);
   }
-  throw new Error(`Unsupported file type: .${ext}. Please upload a CSV or Excel file.`);
+  if (ext === 'pdf') {
+    return pdfToText(buffer, password);
+  }
+  throw new Error(`Unsupported file type: .${ext}. Please upload a CSV, Excel, or PDF file.`);
 }
 
 const buildPrompt = (rawText: string) => `
