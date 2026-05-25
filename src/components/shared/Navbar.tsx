@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 const links = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/transactions', label: 'Transactions' },
-  { to: '/upload', label: 'Upload' },
+  { to: '/investment', label: 'Investment' },
   { to: '/settings', label: 'Settings' },
 ];
 
