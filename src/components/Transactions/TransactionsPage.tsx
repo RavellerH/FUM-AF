@@ -100,22 +100,29 @@ export function TransactionsPage() {
 
       {/* Stats bar */}
       {visible.length > 0 && (
-        <div className="mb-4 grid grid-cols-4 gap-3">
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Income</p>
-            <p className="text-lg font-bold text-emerald-600">+{fmt(stats.income)}</p>
+        <div className="mb-4 flex gap-3">
+          {/* Income + Expense side by side in one card */}
+          <div className="flex flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="flex-1 border-r border-gray-100 px-5 py-3">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Income</p>
+              <p className="text-lg font-bold text-emerald-600">+{fmt(stats.income)}</p>
+            </div>
+            <div className="flex-1 px-5 py-3">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Expense</p>
+              <p className="text-lg font-bold text-red-500">−{fmt(stats.expense)}</p>
+            </div>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Expense</p>
-            <p className="text-lg font-bold text-red-500">−{fmt(stats.expense)}</p>
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+
+          {/* Net */}
+          <div className="rounded-lg border border-gray-200 bg-white px-5 py-3">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Net</p>
             <p className={`text-lg font-bold ${stats.net >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
               {stats.net >= 0 ? '+' : '−'}{fmt(Math.abs(stats.net))}
             </p>
           </div>
-          <div className={`rounded-lg border px-4 py-3 ${stats.uncategorized > 0 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white'}`}>
+
+          {/* Uncategorized */}
+          <div className={`rounded-lg border px-5 py-3 ${stats.uncategorized > 0 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white'}`}>
             <p className="text-xs text-gray-400 uppercase tracking-wide">Uncategorized</p>
             <p className={`text-lg font-bold ${stats.uncategorized > 0 ? 'text-yellow-700' : 'text-gray-400'}`}>
               {stats.uncategorized}
