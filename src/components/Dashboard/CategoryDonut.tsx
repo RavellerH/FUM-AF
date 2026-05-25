@@ -1,10 +1,13 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { Summary } from '../../types';
 
 const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-export function CategoryDonut({ summary }: { summary: Summary }) {
-  const data = Object.entries(summary.by_category)
+interface Props {
+  byCategory: Record<string, number>;
+}
+
+export function CategoryDonut({ byCategory }: Props) {
+  const data = Object.entries(byCategory)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 8);
