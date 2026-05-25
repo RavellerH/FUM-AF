@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Summary, Transaction } from '../types';
 
-const EXCLUDE_FROM_EXPENSE = ['Internal Transfer', 'Housing'];
+const EXCLUDE_FROM_EXPENSE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 const INCOME_CATEGORIES = ['Family'];
 
 export function useSummary() {
