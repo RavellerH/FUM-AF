@@ -5,6 +5,7 @@ import { Navbar } from '../components/shared/Navbar';
 import { DashboardPage } from '../components/Dashboard/DashboardPage';
 import { TransactionsPage } from '../components/Transactions/TransactionsPage';
 import { InvestmentPage } from '../components/Investment/InvestmentPage';
+import { AnalysisPage } from '../components/Analysis/AnalysisPage';
 import { SettingsPage } from '../components/Settings/SettingsPage';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/investment" element={<InvestmentPage />} />
             <Route path="/settings" element={<SettingsPage />} />
