@@ -1,0 +1,31 @@
+{
+  "name": "FinanceAF",
+  "short_name": "FinanceAF",
+  "description": "Personal finance tracker — spending, investments, and net worth",
+  "start_url": "/FUM-AF/",
+  "scope": "/FUM-AF/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/FUM-AF/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/FUM-AF/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/FUM-AF/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
