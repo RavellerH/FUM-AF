@@ -9,7 +9,8 @@ interface Props {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Internal Transfer': 'bg-blue-100 text-blue-700',
+  'Third-Party Transfer': 'bg-blue-100 text-blue-700',
+  'Reimbursable':        'bg-lime-100 text-lime-700',
   'Investment':        'bg-purple-100 text-purple-700',
   'Family':            'bg-emerald-100 text-emerald-700',
   'Freelance':         'bg-teal-100 text-teal-700',

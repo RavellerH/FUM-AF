@@ -65,10 +65,12 @@ export function TransactionsPage() {
     return list;
   }, [transactions, search, uncategorizedOnly]);
 
-  // Summary stats
+  const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
+
+  // Summary stats — exclude passthroughs and non-personal categories
   const stats = useMemo(() => {
-    const income = visible.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const expense = visible.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const income  = visible.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
+    const expense = visible.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
     const uncategorized = visible.filter(t => t.category === 'Uncategorized').length;
     return { income, expense, net: income - expense, uncategorized };
   }, [visible]);
@@ -152,8 +154,8 @@ export function TransactionsPage() {
               <tbody>
                 {dates.map(date => {
                   const rows = grouped.get(date)!;
-                  const dayIncome  = rows.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-                  const dayExpense = rows.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                  const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
+                  const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
                   return (
                     <>
                       <tr key={`date-${date}`} className="border-b border-blue-100 bg-blue-50/70">

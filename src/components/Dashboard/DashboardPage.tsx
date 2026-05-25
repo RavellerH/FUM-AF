@@ -11,7 +11,7 @@ import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
 import type { Transaction } from '../../types';
 
-const EXCLUDE_FROM_EXPENSE = ['Internal Transfer', 'Housing'];
+const EXCLUDE_FROM_EXPENSE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 
 function currentMonth() {
   return new Date().toISOString().slice(0, 7);
