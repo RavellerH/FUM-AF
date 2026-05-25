@@ -9,6 +9,12 @@ function fmtPct(v: number) {
   return `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 }
 
+async function fetchUsdIdr(): Promise<number> {
+  const res = await fetch('https://open.er-api.com/v6/latest/USD');
+  const json = await res.json();
+  return json.rates.IDR as number;
+}
+
 // ---------- Edit helpers ----------
 function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
@@ -50,9 +56,11 @@ export function InvestmentPage() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<PortfolioData | null>(null);
   const [saving, setSaving] = useState(false);
+  const [usdIdr, setUsdIdr] = useState<number | null>(null);
 
   useEffect(() => {
     if (session) fetchPortfolio();
+    fetchUsdIdr().then(setUsdIdr).catch(() => {});
   }, [session]);
 
   useEffect(() => {
@@ -99,7 +107,8 @@ export function InvestmentPage() {
   const stockTotal = p.stocks.reduce((s, h) => s + h.value_idr, 0);
   const cryptoInvestTotal = p.crypto_investing.reduce((s, c) => s + c.value_idr, 0);
   const savingsTotal = p.savings.reduce((s, sv) => s + sv.value_idr, 0);
-  const totalIdr = stockTotal + cryptoInvestTotal + savingsTotal;
+  const cryptoTradingIdr = usdIdr ? p.crypto_trading.total_equity_usd * usdIdr : 0;
+  const totalIdr = stockTotal + cryptoInvestTotal + savingsTotal + cryptoTradingIdr;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -131,7 +140,7 @@ export function InvestmentPage() {
         <p className="mt-1 text-3xl font-bold text-gray-900">{fmt(totalIdr)}</p>
         <div className="mt-3 flex gap-6 text-sm text-gray-500">
           <span>Stocks <span className="font-medium text-gray-800">{fmt(stockTotal)}</span></span>
-          <span>Crypto <span className="font-medium text-gray-800">{fmt(cryptoInvestTotal)}</span></span>
+          <span>Crypto <span className="font-medium text-gray-800">{fmt(cryptoInvestTotal + cryptoTradingIdr)}</span></span>
           <span>Savings <span className="font-medium text-gray-800">{fmt(savingsTotal)}</span></span>
         </div>
       </div>
@@ -215,25 +224,38 @@ export function InvestmentPage() {
 
           {/* Hyperliquid */}
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="mb-3 font-semibold text-gray-800">Crypto Trading — Hyperliquid</h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800">Crypto Trading — Hyperliquid</h2>
+              {usdIdr && (
+                <span className="text-xs text-gray-400">
+                  1 USD = {fmt(usdIdr)} IDR
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               {[
-                { label: 'Total Equity', key: 'total_equity_usd', usd: true },
-                { label: 'Trading', key: 'trading_equity_usd', usd: true },
-                { label: 'Vault', key: 'vault_equity_usd', usd: true },
-                { label: 'Earn', key: 'earn_balance_usd', usd: true },
-              ].map(({ label, key, usd }) => (
-                <div key={key} className="rounded-lg bg-gray-50 px-3 py-2">
-                  <p className="text-xs text-gray-400">{label}</p>
-                  {editing ? (
-                    <input type="number" step="0.01" defaultValue={(draft!.crypto_trading as any)[key]}
-                      onBlur={e => setDraft({ ...draft!, crypto_trading: { ...draft!.crypto_trading, [key]: parseFloat(e.target.value) || 0 } })}
-                      className="mt-0.5 w-full rounded border border-blue-400 px-1.5 py-0.5 text-sm font-semibold focus:outline-none" />
-                  ) : (
-                    <p className="mt-0.5 font-semibold text-gray-800">{usd ? '$' : ''}{(p.crypto_trading as any)[key].toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
-                  )}
-                </div>
-              ))}
+                { label: 'Total Equity', key: 'total_equity_usd' },
+                { label: 'Trading', key: 'trading_equity_usd' },
+                { label: 'Vault', key: 'vault_equity_usd' },
+                { label: 'Earn', key: 'earn_balance_usd' },
+              ].map(({ label, key }) => {
+                const usdVal = (p.crypto_trading as any)[key] as number;
+                return (
+                  <div key={key} className="rounded-lg bg-gray-50 px-3 py-2">
+                    <p className="text-xs text-gray-400">{label}</p>
+                    {editing ? (
+                      <input type="number" step="0.01" defaultValue={(draft!.crypto_trading as any)[key]}
+                        onBlur={e => setDraft({ ...draft!, crypto_trading: { ...draft!.crypto_trading, [key]: parseFloat(e.target.value) || 0 } })}
+                        className="mt-0.5 w-full rounded border border-blue-400 px-1.5 py-0.5 text-sm font-semibold focus:outline-none" />
+                    ) : (
+                      <>
+                        <p className="mt-0.5 font-semibold text-gray-800">${usdVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        {usdIdr && <p className="text-xs text-gray-400">{fmt(usdVal * usdIdr)} IDR</p>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div className="mt-3 rounded-lg bg-purple-50 px-3 py-2 text-sm">
               <p className="text-xs text-purple-500">Staking</p>
