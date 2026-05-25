@@ -6,9 +6,10 @@ import { Spinner } from '../shared/Spinner';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
-  AreaChart, Area
+  AreaChart, Area,
 } from 'recharts';
 import type { Transaction } from '../../types';
+import type { PortfolioData } from '../../hooks/usePortfolio';
 
 const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 const INCOME_CAT = 'Family';
@@ -22,6 +23,8 @@ const CAT_COLORS: Record<string, string> = {
   Other:           '#cbd5e1',
 };
 const DONUT_COLORS = ['#ec4899','#f59e0b','#f43f5e','#06b6d4','#94a3b8','#6366f1','#10b981','#8b5cf6'];
+const ALLOC_COLORS = { Stocks: '#3b82f6', BTC: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
+const SECTOR_COLORS = ['#3b82f6','#6366f1','#10b981','#f59e0b','#f43f5e'];
 
 function fmt(v: number) { return Math.round(v).toLocaleString('id-ID'); }
 function fmtK(v: number) {
@@ -29,10 +32,11 @@ function fmtK(v: number) {
   if (Math.abs(v) >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
   return v.toString();
 }
+function pct(v: number, total: number) { return ((v / total) * 100).toFixed(1); }
 
 interface MonthStats {
-  label: string;     // "Jan", "Feb" etc.
-  month: string;     // "2026-01"
+  label: string;
+  month: string;
   income: number;
   expense: number;
   net: number;
@@ -61,17 +65,11 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
       const d = new Date(month + '-01');
       map.set(month, {
         label: d.toLocaleString('id-ID', { month: 'short' }),
-        month,
-        income: 0,
-        expense: 0,
-        net: 0,
-        byCategory: {},
+        month, income: 0, expense: 0, net: 0, byCategory: {},
       });
     }
     const m = map.get(month)!;
-    if (t.type === 'income' && t.category === INCOME_CAT) {
-      m.income += t.amount;
-    }
+    if (t.type === 'income' && t.category === INCOME_CAT) m.income += t.amount;
     if (t.type === 'expense' && !EXCLUDE.includes(t.category)) {
       m.expense += t.amount;
       m.byCategory[t.category] = (m.byCategory[t.category] ?? 0) + t.amount;
@@ -83,14 +81,10 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
 
 function computeInsights(months: MonthStats[], totalCats: Record<string, number>): Insight[] {
   const insights: Insight[] = [];
-
-  // Income vs expense gap
-  const avgIncome = months.reduce((s, m) => s + m.income, 0) / months.length;
   const avgExpense = months.reduce((s, m) => s + m.expense, 0) / months.length;
   const normalMonths = months.filter(m => m.income < 7_000_000);
   const avgNormalIncome = normalMonths.length
-    ? normalMonths.reduce((s, m) => s + m.income, 0) / normalMonths.length
-    : avgIncome;
+    ? normalMonths.reduce((s, m) => s + m.income, 0) / normalMonths.length : avgExpense;
 
   if (avgExpense > avgNormalIncome) {
     insights.push({
@@ -99,8 +93,6 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
       body: `Normal monthly income ≈ ${fmt(Math.round(avgNormalIncome))} vs avg spending ${fmt(Math.round(avgExpense))} — deficit of ~${fmt(Math.round(avgExpense - avgNormalIncome))}/month on normal months.`,
     });
   }
-
-  // Shopping trend
   const shopVals = months.map(m => m.byCategory['Shopping'] ?? 0);
   if (shopVals.length >= 2 && shopVals[0] > 0) {
     const growth = ((shopVals[shopVals.length - 1] / shopVals[0]) - 1) * 100;
@@ -112,8 +104,6 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
       });
     }
   }
-
-  // Surplus months
   const surplusMonths = months.filter(m => m.net > 0);
   if (surplusMonths.length > 0) {
     const totalSurplus = surplusMonths.reduce((s, m) => s + m.net, 0);
@@ -123,42 +113,74 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
       body: surplusMonths.map(m => `${m.label}: +${fmt(m.net)}`).join(' · ') + ' (THR + extra income)',
     });
   }
-
-  // Cash withdrawals
   const cashTotal = totalCats['Cash'] ?? 0;
   if (cashTotal > 0) {
     insights.push({
       type: 'info',
       title: 'Cash withdrawals reduce visibility',
-      body: `${fmt(Math.round(cashTotal))} total left as untracked cash (${fmt(Math.round(cashTotal / months.length))}/month avg). Reduces your ability to see where money goes.`,
+      body: `${fmt(Math.round(cashTotal))} total left as untracked cash (${fmt(Math.round(cashTotal / months.length))}/month avg).`,
     });
   }
+  const totalNet = months.reduce((s, m) => s + m.net, 0);
+  insights.push({
+    type: totalNet >= 0 ? 'positive' : 'warning',
+    title: `4-month net: ${totalNet >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(totalNet)))}`,
+    body: totalNet < 0
+      ? `Total outflows exceeded family income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
+      : `Family income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
+  });
+  return insights;
+}
 
-  // Healthcare
-  const healthTotal = totalCats['Healthcare'] ?? 0;
-  if (healthTotal > 3_000_000) {
+function computeInvestmentInsights(
+  p: PortfolioData,
+  nw: { stocks: number; btc: number; hl: number; savings: number; total: number },
+): Insight[] {
+  const insights: Insight[] = [];
+  const cryptoTotal = nw.btc + nw.hl;
+  const cryptoPct = (cryptoTotal / nw.total) * 100;
+  const savingsPct = (nw.savings / nw.total) * 100;
+  const bankPct = p.stocks_sectors['Bank'] ?? 0;
+
+  insights.push({
+    type: cryptoPct > 40 ? 'warning' : 'info',
+    title: `Crypto allocation: ${cryptoPct.toFixed(1)}% of portfolio`,
+    body: `BTC ${pct(nw.btc, nw.total)}% (store of value) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
+  });
+
+  insights.push({
+    type: 'info',
+    title: `Banking concentration: ${bankPct}% of stock portfolio`,
+    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining) and SINI add some commodity exposure.`,
+  });
+
+  if (p.stocks_pnl_pct < -10) {
     insights.push({
       type: 'info',
-      title: `Healthcare: ${fmt(Math.round(healthTotal))} over ${months.length} months`,
-      body: `Averaging ${fmt(Math.round(healthTotal / months.length))}/month. Verify which are recurring (BPJS, check-ups) vs one-off. Some may qualify as reimbursable.`,
+      title: `Stocks underwater: ${p.stocks_pnl_pct}% (−${fmt(Math.abs(p.stocks_pnl_idr))} IDR)`,
+      body: `Unrealized loss. Indonesian bank stocks are historically resilient long-term. Selling now locks in the loss — hold and consider DCA if cash flow allows.`,
     });
   }
 
-  // 4-month net
-  const totalNet = months.reduce((s, m) => s + m.net, 0);
-  if (totalNet < 0) {
+  insights.push({
+    type: savingsPct >= 25 ? 'positive' : 'warning',
+    title: `Savings: ${savingsPct.toFixed(1)}% liquid (${fmt(nw.savings)} IDR)`,
+    body: `Deviota savings cover ~${(nw.savings / 7_300_000).toFixed(1)} months of current spending. ${savingsPct >= 25 ? 'Healthy buffer.' : 'Consider building to 3–6 months of expenses (21–44M).'}`,
+  });
+
+  if (p.crypto_investing.length > 1) {
     insights.push({
-      type: 'warning',
-      title: `4-month net: −${fmt(Math.abs(Math.round(totalNet)))}`,
-      body: `Total outflows exceeded family income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`,
-    });
-  } else {
-    insights.push({
-      type: 'positive',
-      title: `4-month net: +${fmt(Math.round(totalNet))}`,
-      body: `Family income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
+      type: 'info',
+      title: 'BTC split across 2 exchanges',
+      body: `${p.crypto_investing.map(c => `${c.platform}: ${c.amount.toFixed(8)} BTC`).join(' · ')}. Consider consolidating to reduce exchange counterparty risk.`,
     });
   }
+
+  insights.push({
+    type: 'info',
+    title: 'No fixed-income / bond exposure',
+    body: 'Portfolio is 100% equity + crypto + cash. Indonesian government bonds (ORI/SBN) offer 6–7% annual IDR yield with near-zero default risk — good for the stable portion of your portfolio.',
+  });
 
   return insights;
 }
@@ -210,6 +232,22 @@ export function AnalysisPage() {
     const savings = portfolio.savings.reduce((s, sv) => s + sv.value_idr, 0);
     return { stocks, btc, hl, savings, total: stocks + btc + hl + savings };
   }, [portfolio, usdIdr]);
+
+  const investmentInsights = useMemo(() => {
+    if (!portfolio || !netWorth) return [];
+    return computeInvestmentInsights(portfolio, netWorth);
+  }, [portfolio, netWorth]);
+
+  const allocData = netWorth ? [
+    { name: 'Stocks', value: netWorth.stocks },
+    { name: 'BTC', value: netWorth.btc },
+    { name: 'Hyperliquid', value: netWorth.hl },
+    { name: 'Savings', value: netWorth.savings },
+  ] : [];
+
+  const sectorData = portfolio
+    ? Object.entries(portfolio.stocks_sectors).map(([name, value]) => ({ name, value }))
+    : [];
 
   // Chart data
   const cashFlowData = months.map(m => ({
@@ -395,6 +433,162 @@ export function AnalysisPage() {
           </div>
         </div>
       </div>
+
+      {/* Portfolio Allocation */}
+      {netWorth && portfolio && (
+        <>
+          <div className="mt-8 mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Portfolio Allocation</h2>
+            <p className="text-xs text-gray-400">Asset class breakdown · data as of {portfolio.updated_at}</p>
+          </div>
+
+          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Allocation donut */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-gray-800">Asset Allocation</h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={allocData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85}>
+                    {allocData.map((entry) => (
+                      <Cell key={entry.name} fill={ALLOC_COLORS[entry.name as keyof typeof ALLOC_COLORS]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v) => `${fmt(v as number)} (${pct(v as number, netWorth.total)}%)`} />
+                  <Legend iconType="circle" iconSize={8} formatter={(v) => {
+                    const val = allocData.find(d => d.name === v)?.value ?? 0;
+                    return <span className="text-xs text-gray-600">{v}: {pct(val, netWorth.total)}%</span>;
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Stock sector breakdown */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-gray-800">Stock Sector Mix</h3>
+              <div className="space-y-3">
+                {sectorData.map(({ name, value }, i) => (
+                  <div key={name} className="flex items-center gap-3">
+                    <span className="w-28 shrink-0 text-sm text-gray-600">{name}</span>
+                    <div className="flex-1 h-2.5 rounded-full bg-gray-100">
+                      <div
+                        className="h-2.5 rounded-full"
+                        style={{ width: `${value}%`, backgroundColor: SECTOR_COLORS[i % SECTOR_COLORS.length] }}
+                      />
+                    </div>
+                    <span className="w-10 text-right text-sm font-medium text-gray-700">{value}%</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                {portfolio.stocks.map(s => (
+                  <div key={s.symbol} className="flex flex-col items-center rounded-lg bg-gray-50 px-3 py-2">
+                    <span className="text-xs font-bold text-gray-700">{s.symbol}</span>
+                    <span className="text-xs text-gray-400">{fmt(s.value_idr)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Investment Analyst */}
+          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Asset performance table */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-gray-800">Asset Performance</h3>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                    <th className="pb-2 text-left font-medium">Asset</th>
+                    <th className="pb-2 text-right font-medium">Value (IDR)</th>
+                    <th className="pb-2 text-right font-medium">% Total</th>
+                    <th className="pb-2 text-right font-medium">Risk</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {portfolio.stocks.map(s => (
+                    <tr key={s.symbol} className="hover:bg-gray-50">
+                      <td className="py-2 font-medium text-gray-800">{s.symbol}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(s.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(s.value_idr, netWorth.total)}%</td>
+                      <td className="py-2 text-right">
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Medium</span>
+                      </td>
+                    </tr>
+                  ))}
+                  {portfolio.crypto_investing.map(c => (
+                    <tr key={c.platform} className="hover:bg-gray-50">
+                      <td className="py-2 font-medium text-gray-800">BTC · {c.platform}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(c.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(c.value_idr, netWorth.total)}%</td>
+                      <td className="py-2 text-right">
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">High</span>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="hover:bg-gray-50">
+                    <td className="py-2 font-medium text-gray-800">Hyperliquid</td>
+                    <td className="py-2 text-right tabular-nums text-gray-600">{fmt(netWorth.hl)}</td>
+                    <td className="py-2 text-right tabular-nums text-gray-500">{pct(netWorth.hl, netWorth.total)}%</td>
+                    <td className="py-2 text-right">
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Very High</span>
+                    </td>
+                  </tr>
+                  {portfolio.savings.map(sv => (
+                    <tr key={sv.name} className="hover:bg-gray-50">
+                      <td className="py-2 font-medium text-gray-800">{sv.name}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(sv.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(sv.value_idr, netWorth.total)}%</td>
+                      <td className="py-2 text-right">
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Low</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-gray-200">
+                    <td className="pt-2 font-bold text-gray-800">Total</td>
+                    <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(netWorth.total)}</td>
+                    <td className="pt-2 text-right text-gray-400 text-xs">100%</td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
+              <p className="mt-2 text-xs text-gray-400">
+                Stocks PnL: {portfolio.stocks_pnl_pct > 0 ? '+' : ''}{portfolio.stocks_pnl_pct}%
+                ({portfolio.stocks_pnl_idr >= 0 ? '+' : '−'}{fmt(Math.abs(portfolio.stocks_pnl_idr))} IDR unrealized)
+              </p>
+            </div>
+
+            {/* Investment analyst insights */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-gray-800">Investment Analyst</h3>
+              <div className="space-y-3">
+                {investmentInsights.map((ins, i) => (
+                  <div key={i} className={`rounded-lg p-3 ${
+                    ins.type === 'warning' ? 'bg-red-50 border border-red-100'
+                    : ins.type === 'positive' ? 'bg-emerald-50 border border-emerald-100'
+                    : 'bg-blue-50 border border-blue-100'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 text-base leading-none">
+                        {ins.type === 'warning' ? '⚠️' : ins.type === 'positive' ? '✅' : 'ℹ️'}
+                      </span>
+                      <div>
+                        <p className={`text-sm font-semibold ${
+                          ins.type === 'warning' ? 'text-red-700'
+                          : ins.type === 'positive' ? 'text-emerald-700'
+                          : 'text-blue-700'
+                        }`}>{ins.title}</p>
+                        <p className="mt-0.5 text-xs text-gray-600">{ins.body}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
