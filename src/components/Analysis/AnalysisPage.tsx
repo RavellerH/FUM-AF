@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { usePortfolio } from '../../hooks/usePortfolio';
+import { generateSpendingInsights } from '../../lib/gemini';
+import type { AIInsight } from '../../lib/gemini';
 import { Spinner } from '../shared/Spinner';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend,
@@ -192,6 +194,26 @@ export function AnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [usdIdr, setUsdIdr] = useState<number>(16500);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const refreshInsights = async (txnData: Transaction[]) => {
+    if (!txnData.length) return;
+    setAiLoading(true);
+    const m = buildMonthlyStats(txnData);
+    const cats = m.reduce<Record<string, number>>((acc, mo) => {
+      for (const [k, v] of Object.entries(mo.byCategory)) acc[k] = (acc[k] ?? 0) + v;
+      return acc;
+    }, {});
+    try {
+      const insights = await generateSpendingInsights(m, cats);
+      setAiInsights(insights);
+    } catch {
+      setAiInsights(computeInsights(m, cats));
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const load = async () => {
     if (!session) return;
@@ -200,11 +222,13 @@ export function AnalysisPage() {
       supabase.from('transactions').select('*').order('date'),
       fetchUsdIdr(),
     ]);
-    setTxns((data ?? []) as Transaction[]);
+    const txnData = (data ?? []) as Transaction[];
+    setTxns(txnData);
     setUsdIdr(rate);
     fetchPortfolio();
     setLastRefresh(new Date());
     setLoading(false);
+    refreshInsights(txnData);
   };
 
   useEffect(() => { load(); }, [session]);
@@ -405,32 +429,59 @@ export function AnalysisPage() {
           </div>
         )}
 
-        {/* Insights */}
+        {/* AI Insights */}
         <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-4 font-semibold text-gray-800">Key Insights</h2>
-          <div className="space-y-3">
-            {insights.map((ins, i) => (
-              <div key={i} className={`rounded-lg p-3 ${
-                ins.type === 'warning' ? 'bg-red-50 border border-red-100'
-                : ins.type === 'positive' ? 'bg-emerald-50 border border-emerald-100'
-                : 'bg-blue-50 border border-blue-100'
-              }`}>
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 text-base leading-none">
-                    {ins.type === 'warning' ? '⚠️' : ins.type === 'positive' ? '✅' : 'ℹ️'}
-                  </span>
-                  <div>
-                    <p className={`text-sm font-semibold ${
-                      ins.type === 'warning' ? 'text-red-700'
-                      : ins.type === 'positive' ? 'text-emerald-700'
-                      : 'text-blue-700'
-                    }`}>{ins.title}</p>
-                    <p className="mt-0.5 text-xs text-gray-600">{ins.body}</p>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-gray-800">Key Insights</h2>
+              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">✨ AI</span>
+            </div>
+            <button
+              onClick={() => refreshInsights(txns)}
+              disabled={aiLoading}
+              title="Regenerate insights"
+              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 transition-colors"
+            >
+              <svg className={`h-4 w-4 ${aiLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+          {aiLoading ? (
+            <div className="space-y-3">
+              {[0, 1, 2, 3, 4].map(i => (
+                <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3 animate-pulse">
+                  <div className="mb-2 h-3 w-3/4 rounded bg-gray-200" />
+                  <div className="mb-1.5 h-2.5 w-full rounded bg-gray-100" />
+                  <div className="h-2.5 w-2/3 rounded bg-gray-100" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(aiInsights.length ? aiInsights : insights).map((ins, i) => (
+                <div key={i} className={`rounded-lg p-3 ${
+                  ins.type === 'warning' ? 'bg-red-50 border border-red-100'
+                  : ins.type === 'positive' ? 'bg-emerald-50 border border-emerald-100'
+                  : 'bg-blue-50 border border-blue-100'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 text-base leading-none">
+                      {ins.type === 'warning' ? '⚠️' : ins.type === 'positive' ? '✅' : 'ℹ️'}
+                    </span>
+                    <div>
+                      <p className={`text-sm font-semibold ${
+                        ins.type === 'warning' ? 'text-red-700'
+                        : ins.type === 'positive' ? 'text-emerald-700'
+                        : 'text-blue-700'
+                      }`}>{ins.title}</p>
+                      <p className="mt-0.5 text-xs text-gray-600">{ins.body}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
