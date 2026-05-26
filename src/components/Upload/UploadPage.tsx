@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
 import { fileToText, parseTransactionsWithGemini } from '../../lib/gemini';
+import { useRules, applyRules } from '../../hooks/useRules';
 import type { ParsedTransaction } from '../../types';
 import { DropZone } from './DropZone';
 import { RawPreview } from './RawPreview';
@@ -24,14 +25,18 @@ export function UploadPage() {
   const { session } = useAuth();
   const { insertTransactions } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
+  const { rules, fetchRules } = useRules();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>('idle');
   const [file, setFile] = useState<File | null>(null);
   const [rawText, setRawText] = useState('');
   const [parsed, setParsed] = useState<ParsedTransaction[]>([]);
+  const [rulesApplied, setRulesApplied] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState(() => localStorage.getItem(PASSWORD_KEY) ?? '');
+
+  useEffect(() => { fetchRules(); }, []);
 
   const readFile = async (f: File, pwd?: string) => {
     const text = await fileToText(f, pwd || undefined);
@@ -74,7 +79,12 @@ export function UploadPage() {
     setError(null);
     try {
       const result = await parseTransactionsWithGemini(rawText);
-      setParsed(result);
+      const withRules = applyRules(result, rules);
+      const count = withRules.filter((t, i) =>
+        t.category !== result[i].category || t.type !== result[i].type
+      ).length;
+      setParsed(withRules);
+      setRulesApplied(count);
       setStep('confirming');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gemini parsing failed');
@@ -151,6 +161,15 @@ export function UploadPage() {
           )}
 
           {step !== 'done' && <RawPreview text={rawText} fileName={file.name} />}
+
+          {step === 'confirming' && rulesApplied > 0 && (
+            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800">
+              <svg className="h-4 w-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span><strong>{rulesApplied}</strong> transaction{rulesApplied !== 1 ? 's' : ''} auto-categorized by your rules</span>
+            </div>
+          )}
 
           {step === 'confirming' && <ParsedPreviewTable transactions={parsed} />}
 

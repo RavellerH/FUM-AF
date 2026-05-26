@@ -37,3 +37,12 @@ export interface ParsedTransaction {
   description: string;
   currency: string;
 }
+
+export interface Rule {
+  id: string;
+  user_id: string;
+  pattern: string;
+  category: string;
+  type: TransactionType | null;
+  created_at: string;
+}
