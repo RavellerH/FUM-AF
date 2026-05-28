@@ -1,6 +1,7 @@
 import { CategoryManager } from './CategoryManager';
 import { ReParseButton } from './ReParseButton';
 import { FilePasswordSetting } from './FilePasswordSetting';
+import { RulesManager } from './RulesManager';
 
 export function SettingsPage() {
   return (
@@ -9,6 +10,9 @@ export function SettingsPage() {
       <div className="flex flex-col gap-8">
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <FilePasswordSetting />
+        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <RulesManager />
         </div>
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <CategoryManager />
