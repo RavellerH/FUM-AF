@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 
-const HASH = 'a9d83b5a6eeff00aa970a0232309bd01a7c24d6c2c6abc5f9f99511a664fbb8a';
+const HASH = 'd6a401483d6023d596201d7185b2d442f5438e305ee54553a8a7d912b459b297';
 const SESSION_KEY = 'fum_unlocked';
 
 async function sha256(text: string): Promise<string> {

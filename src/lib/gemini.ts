@@ -83,3 +83,63 @@ export async function parseTransactionsWithGemini(rawText: string): Promise<Pars
   const text = result.response.text();
   return extractJsonArray(text);
 }
+
+export interface AIInsight {
+  type: 'warning' | 'positive' | 'info';
+  title: string;
+  body: string;
+}
+
+export async function generateSpendingInsights(
+  months: Array<{
+    label: string;
+    month: string;
+    income: number;
+    expense: number;
+    net: number;
+    byCategory: Record<string, number>;
+  }>,
+  allTimeCats: Record<string, number>,
+): Promise<AIInsight[]> {
+  if (!months.length) return [];
+
+  const fmtIDR = (n: number) => Math.round(n).toLocaleString('id-ID');
+
+  const monthLines = months.map(m => {
+    const cats = Object.entries(m.byCategory)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 6)
+      .map(([k, v]) => `${k}: ${fmtIDR(v)}`)
+      .join(', ');
+    return `  ${m.month} (${m.label}): income=${fmtIDR(m.income)} expense=${fmtIDR(m.expense)} net=${m.net >= 0 ? '+' : ''}${fmtIDR(m.net)} | ${cats}`;
+  }).join('\n');
+
+  const catSummary = Object.entries(allTimeCats)
+    .sort(([, a], [, b]) => b - a)
+    .map(([k, v]) => `${k}: ${fmtIDR(v)}`)
+    .join(', ');
+
+  const prompt = `You are a personal finance analyst for an Indonesian household. All amounts are in IDR (Indonesian Rupiah).
+
+Monthly spending data:
+${monthLines}
+
+All-time totals by category: ${catSummary}
+
+Generate 5 specific financial insights about this spending data. Rules:
+1. Return ONLY a valid JSON array — no markdown fences, no explanation.
+2. Schema: [{ "type": "warning"|"positive"|"info", "title": "<60 chars", "body": "2-3 sentences with actual IDR amounts, month names, percentage changes" }]
+3. Be concrete — every insight must cite actual numbers from the data above. No generic advice.
+4. Cover a variety: biggest category trend, month-over-month change, savings rate, an anomalous month if any, one actionable suggestion.
+5. Context: IDR 5–10M/month expense is normal for Indonesian middle-class. Savings rate = net/income.
+
+Return only the JSON array:`.trim();
+
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+  const stripped = text.replace(/```(?:json)?\n?/gi, '').trim();
+  const match = stripped.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('No JSON array in Gemini response');
+  return JSON.parse(match[0]) as AIInsight[];
+}

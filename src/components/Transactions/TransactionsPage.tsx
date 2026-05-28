@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useCategories } from '../../hooks/useCategories';
+import { useRules } from '../../hooks/useRules';
 import { supabase } from '../../lib/supabase';
 import { TransactionFilters } from './TransactionFilters';
 import { TransactionRow } from './TransactionRow';
@@ -28,6 +29,7 @@ export function TransactionsPage() {
   const { session } = useAuth();
   const { transactions, loading, error, fetchTransactions, updateTransaction, deleteTransaction } = useTransactions();
   const { categories, fetchCategories } = useCategories();
+  const { addRule } = useRules();
   const [months, setMonths] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>({});
   const [search, setSearch] = useState('');
@@ -181,6 +183,7 @@ export function TransactionsPage() {
                           categories={categoryNames}
                           onUpdate={updateTransaction}
                           onDelete={deleteTransaction}
+                          onAddRule={addRule}
                         />
                       ))}
                     </>
