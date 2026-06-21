@@ -310,7 +310,7 @@ export function AnalysisPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Financial Analysis</h1>
           <p className="text-xs text-gray-400 mt-0.5">
-            Jan–Apr 2026 · {txns.length} transactions · refreshed {lastRefresh.toLocaleTimeString('id-ID')}
+            {months.length ? `${months[0].label}–${months[months.length - 1].label} ${months[months.length - 1].month.slice(0, 4)}` : 'No data'} · {txns.length} transactions · refreshed {lastRefresh.toLocaleTimeString('id-ID')}
           </p>
         </div>
         <button
