@@ -84,6 +84,7 @@ export function DashboardPage() {
 
   const stats = computeStats(transactions);
   const net = stats.income - stats.expense;
+  const expenseAfterAid = stats.expense - stats.aid;
   const hasTransactions = transactions.length > 0;
   const fixedCosts = stats.rent + (stats.byCategory['Insurance'] ?? 0);
   const uncategorizedCount = transactions.filter(t => t.category === 'Uncategorized').length;
@@ -127,7 +128,7 @@ export function DashboardPage() {
           )}
 
           {/* KPI row */}
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Income</p>
               <p className="mt-1 text-2xl font-bold text-green-600">{fmt(stats.income)}</p>
@@ -145,6 +146,13 @@ export function DashboardPage() {
               <p className="mt-1 text-2xl font-bold text-red-600">{fmt(stats.expense)}</p>
               <p className="mt-1 text-xs text-gray-400">Variable spending</p>
             </div>
+            {stats.aid > 0 && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-blue-700">Expenses − Aid</p>
+                <p className="mt-1 text-2xl font-bold text-blue-700">{fmt(expenseAfterAid)}</p>
+                <p className="mt-1 text-xs text-blue-500">Expenses {fmt(stats.expense)} − aid received {fmt(stats.aid)}</p>
+              </div>
+            )}
             <div className={`rounded-xl border p-5 ${net >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Net</p>
               <p className={`mt-1 text-2xl font-bold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(net)}</p>
