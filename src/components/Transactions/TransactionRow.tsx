@@ -23,6 +23,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Food & Dining':     'bg-amber-100 text-amber-700',
   'Healthcare':        'bg-rose-100 text-rose-700',
   'Insurance':         'bg-fuchsia-100 text-fuchsia-700',
+  'Admin Fee':         'bg-stone-100 text-stone-600',
   'Transport':         'bg-sky-100 text-sky-700',
   'Shopping':          'bg-pink-100 text-pink-700',
   'Entertainment':     'bg-violet-100 text-violet-700',

@@ -345,7 +345,7 @@ export function AnalysisPage() {
 
       {totalUncategorized > 0 && (
         <a
-          href="#/transactions"
+          href="#/transactions?category=Uncategorized"
           className="mb-6 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
         >
           <span>⚠️ {totalUncategorized} uncategorized transaction{totalUncategorized > 1 ? 's' : ''} across this period</span>

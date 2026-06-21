@@ -1,15 +1,19 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useCategories } from '../../hooks/useCategories';
 import { useRules } from '../../hooks/useRules';
 import { supabase } from '../../lib/supabase';
 import { TransactionFilters } from './TransactionFilters';
+import type { PageFilters } from './TransactionFilters';
 import { TransactionRow } from './TransactionRow';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
-import type { Transaction } from '../../types';
-import type { TransactionFilters as Filters } from '../../hooks/useTransactions';
+import type { Transaction, TransactionType } from '../../types';
+
+type SortKey = 'date' | 'amount' | 'category';
+type SortDir = 'asc' | 'desc';
 
 function fmt(v: number) {
   return v.toLocaleString('id-ID');
@@ -31,13 +35,44 @@ export function TransactionsPage() {
   const { categories, fetchCategories } = useCategories();
   const { addRule } = useRules();
   const [months, setMonths] = useState<string[]>([]);
-  const [filters, setFilters] = useState<Filters>({});
-  const [search, setSearch] = useState('');
-  const [uncategorizedOnly, setUncategorizedOnly] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filters, setFilters] = useState<PageFilters>(() => ({
+    dateFrom: searchParams.get('dateFrom') ?? '',
+    dateTo: searchParams.get('dateTo') ?? '',
+    months: searchParams.getAll('month'),
+    type: (searchParams.get('type') as TransactionType | '') ?? '',
+    categories: searchParams.getAll('category'),
+    amountMin: searchParams.get('amountMin') ?? '',
+    amountMax: searchParams.get('amountMax') ?? '',
+  }));
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [uncategorizedOnly, setUncategorizedOnly] = useState(searchParams.get('uncategorized') === '1');
+  const [sortKey, setSortKey] = useState<SortKey>((searchParams.get('sort') as SortKey) || 'date');
+  const [sortDir, setSortDir] = useState<SortDir>((searchParams.get('dir') as SortDir) || 'desc');
+
+  // Keep URL in sync with filter state
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
+    if (filters.dateTo) params.set('dateTo', filters.dateTo);
+    for (const m of filters.months) params.append('month', m);
+    if (filters.type) params.set('type', filters.type);
+    for (const c of filters.categories) params.append('category', c);
+    if (filters.amountMin) params.set('amountMin', filters.amountMin);
+    if (filters.amountMax) params.set('amountMax', filters.amountMax);
+    if (search) params.set('q', search);
+    if (uncategorizedOnly) params.set('uncategorized', '1');
+    if (sortKey !== 'date') params.set('sort', sortKey);
+    if (sortDir !== 'desc') params.set('dir', sortDir);
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, search, uncategorizedOnly, sortKey, sortDir]);
 
   useEffect(() => {
     if (!session) return;
     fetchCategories();
+    fetchTransactions({});
     supabase
       .from('transactions')
       .select('date')
@@ -48,24 +83,44 @@ export function TransactionsPage() {
       });
   }, [session]);
 
-  useEffect(() => {
-    fetchTransactions(filters);
-  }, [filters]);
-
   const categoryNames = categories.map(c => c.name);
 
-  // Client-side filtering on top of DB filters
   const visible = useMemo(() => {
     let list = transactions;
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(t => t.description?.toLowerCase().includes(q));
     }
-    if (uncategorizedOnly) {
-      list = list.filter(t => t.category === 'Uncategorized');
-    }
+    if (filters.dateFrom) list = list.filter(t => t.date >= filters.dateFrom);
+    if (filters.dateTo) list = list.filter(t => t.date <= filters.dateTo);
+    if (filters.months.length) list = list.filter(t => filters.months.includes(t.date.slice(0, 7)));
+    if (filters.type) list = list.filter(t => t.type === filters.type);
+    if (filters.categories.length) list = list.filter(t => filters.categories.includes(t.category));
+    const min = filters.amountMin ? Number(filters.amountMin) : undefined;
+    const max = filters.amountMax ? Number(filters.amountMax) : undefined;
+    if (min !== undefined) list = list.filter(t => t.amount >= min);
+    if (max !== undefined) list = list.filter(t => t.amount <= max);
+    if (uncategorizedOnly) list = list.filter(t => t.category === 'Uncategorized');
     return list;
-  }, [transactions, search, uncategorizedOnly]);
+  }, [transactions, search, filters, uncategorizedOnly]);
+
+  const sorted = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...visible].sort((a, b) => {
+      if (sortKey === 'amount') return (a.amount - b.amount) * dir;
+      if (sortKey === 'category') return a.category.localeCompare(b.category) * dir;
+      return a.date.localeCompare(b.date) * dir;
+    });
+  }, [visible, sortKey, sortDir]);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'date' ? 'desc' : 'desc');
+    }
+  }, [sortKey]);
 
   const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 
@@ -77,8 +132,14 @@ export function TransactionsPage() {
     return { income, expense, net: income - expense, uncategorized };
   }, [visible]);
 
-  const grouped = groupByDate(visible);
-  const dates = [...grouped.keys()].sort((a, b) => b.localeCompare(a));
+  const isDateSort = sortKey === 'date';
+  const grouped = isDateSort ? groupByDate(sorted) : null;
+  const dates = grouped ? [...grouped.keys()].sort((a, b) => (sortDir === 'asc' ? a.localeCompare(b) : b.localeCompare(a))) : [];
+
+  const sortIndicator = (key: SortKey) => {
+    if (sortKey !== key) return null;
+    return <span className="ml-1">{sortDir === 'asc' ? '▲' : '▼'}</span>;
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -96,7 +157,7 @@ export function TransactionsPage() {
           categories={categoryNames}
           search={search}
           uncategorizedOnly={uncategorizedOnly}
-          onChange={f => setFilters(f)}
+          onChange={setFilters}
           onSearch={setSearch}
           onUncategorizedOnly={setUncategorizedOnly}
         />
@@ -148,14 +209,25 @@ export function TransactionsPage() {
             <table className="w-full">
               <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 shadow-sm">
                 <tr>
-                  {['Date', 'Amount', 'Curr', 'Type', 'Category', 'Description', 'Source', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
-                  ))}
+                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('date')}>
+                    Date{sortIndicator('date')}
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('amount')}>
+                    Amount{sortIndicator('amount')}
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium">Curr</th>
+                  <th className="px-4 py-3 text-left font-medium">Type</th>
+                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('category')}>
+                    Category{sortIndicator('category')}
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium">Description</th>
+                  <th className="px-4 py-3 text-left font-medium">Source</th>
+                  <th className="px-4 py-3 text-left font-medium"></th>
                 </tr>
               </thead>
               <tbody>
-                {dates.map(date => {
-                  const rows = grouped.get(date)!;
+                {isDateSort ? dates.map(date => {
+                  const rows = grouped!.get(date)!;
                   const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
                   const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
                   return (
@@ -188,7 +260,16 @@ export function TransactionsPage() {
                       ))}
                     </>
                   );
-                })}
+                }) : sorted.map(t => (
+                  <TransactionRow
+                    key={t.id}
+                    transaction={t}
+                    categories={categoryNames}
+                    onUpdate={updateTransaction}
+                    onDelete={deleteTransaction}
+                    onAddRule={addRule}
+                  />
+                ))}
               </tbody>
             </table>
           </div>

@@ -102,7 +102,7 @@ export function DashboardPage() {
         <>
           {uncategorizedCount > 0 && (
             <a
-              href="#/transactions"
+              href={`#/transactions?month=${selectedMonth}&category=Uncategorized`}
               className="mb-4 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
             >
               <span>⚠️ {uncategorizedCount} uncategorized transaction{uncategorizedCount > 1 ? 's' : ''} this month</span>
