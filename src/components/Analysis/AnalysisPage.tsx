@@ -43,6 +43,10 @@ interface MonthStats {
   expense: number;
   net: number;
   byCategory: Record<string, number>;
+  investment: number;
+  rent: number;
+  insurance: number;
+  uncategorized: number;
 }
 
 interface Insight {
@@ -68,6 +72,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
       map.set(month, {
         label: d.toLocaleString('id-ID', { month: 'short' }),
         month, income: 0, expense: 0, net: 0, byCategory: {},
+        investment: 0, rent: 0, insurance: 0, uncategorized: 0,
       });
     }
     const m = map.get(month)!;
@@ -76,6 +81,10 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
       m.expense += t.amount;
       m.byCategory[t.category] = (m.byCategory[t.category] ?? 0) + t.amount;
     }
+    if (t.type === 'expense' && t.category === 'Investment') m.investment += t.amount;
+    if (t.type === 'expense' && t.category === 'Housing') m.rent += t.amount;
+    if (t.type === 'expense' && t.category === 'Insurance') m.insurance += t.amount;
+    if (t.category === 'Uncategorized') m.uncategorized += 1;
   }
   for (const m of map.values()) m.net = m.income - m.expense;
   return [...map.values()].sort((a, b) => a.month.localeCompare(b.month));
@@ -247,6 +256,16 @@ export function AnalysisPage() {
 
   const insights = useMemo(() => computeInsights(months, allTimeCats), [months, allTimeCats]);
 
+  const allCategoryNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of months) for (const k of Object.keys(m.byCategory)) set.add(k);
+    return [...set].sort((a, b) => (allTimeCats[b] ?? 0) - (allTimeCats[a] ?? 0));
+  }, [months, allTimeCats]);
+
+  const totalUncategorized = useMemo(() => months.reduce((s, m) => s + m.uncategorized, 0), [months]);
+  const totalInvestment = useMemo(() => months.reduce((s, m) => s + m.investment, 0), [months]);
+  const totalFixedCosts = useMemo(() => months.reduce((s, m) => s + m.rent + m.insurance, 0), [months]);
+
   // Net worth
   const netWorth = useMemo(() => {
     if (!portfolio) return null;
@@ -310,7 +329,7 @@ export function AnalysisPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Financial Analysis</h1>
           <p className="text-xs text-gray-400 mt-0.5">
-            Jan–Apr 2026 · {txns.length} transactions · refreshed {lastRefresh.toLocaleTimeString('id-ID')}
+            {months.length ? `${months[0].label}–${months[months.length - 1].label} ${months[months.length - 1].month.slice(0, 4)}` : 'No data'} · {txns.length} transactions · refreshed {lastRefresh.toLocaleTimeString('id-ID')}
           </p>
         </div>
         <button
@@ -323,6 +342,16 @@ export function AnalysisPage() {
           Refresh
         </button>
       </div>
+
+      {totalUncategorized > 0 && (
+        <a
+          href="#/transactions"
+          className="mb-6 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
+        >
+          <span>⚠️ {totalUncategorized} uncategorized transaction{totalUncategorized > 1 ? 's' : ''} across this period</span>
+          <span className="font-medium underline">Review →</span>
+        </a>
+      )}
 
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -393,6 +422,103 @@ export function AnalysisPage() {
             ))}
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Category totals by month */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
+        <h2 className="mb-4 font-semibold text-gray-800">Spending by Category — Monthly Totals</h2>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+              <th className="pb-2 text-left font-medium">Category</th>
+              {months.map(m => <th key={m.month} className="pb-2 text-right font-medium">{m.label}</th>)}
+              <th className="pb-2 text-right font-medium">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {allCategoryNames.map(cat => (
+              <tr key={cat} className="hover:bg-gray-50">
+                <td className="py-2 font-medium text-gray-800">{cat}</td>
+                {months.map(m => (
+                  <td key={m.month} className="py-2 text-right tabular-nums text-gray-600">
+                    {m.byCategory[cat] ? fmt(m.byCategory[cat]) : '—'}
+                  </td>
+                ))}
+                <td className="py-2 text-right tabular-nums font-semibold text-gray-800">{fmt(allTimeCats[cat] ?? 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-gray-200">
+              <td className="pt-2 font-bold text-gray-800">Total</td>
+              {months.map(m => <td key={m.month} className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(m.expense)}</td>)}
+              <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.expense, 0))}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Fixed costs + Investment contributions by month */}
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
+          <h2 className="mb-4 font-semibold text-gray-800">Fixed Costs — Monthly</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                <th className="pb-2 text-left font-medium">Month</th>
+                <th className="pb-2 text-right font-medium">Rent</th>
+                <th className="pb-2 text-right font-medium">Insurance</th>
+                <th className="pb-2 text-right font-medium">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {months.map(m => (
+                <tr key={m.month} className="hover:bg-gray-50">
+                  <td className="py-2 font-medium text-gray-800">{m.label}</td>
+                  <td className="py-2 text-right tabular-nums text-gray-600">{m.rent ? fmt(m.rent) : '—'}</td>
+                  <td className="py-2 text-right tabular-nums text-gray-600">{m.insurance ? fmt(m.insurance) : '—'}</td>
+                  <td className="py-2 text-right tabular-nums font-semibold text-gray-800">{fmt(m.rent + m.insurance)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-200">
+                <td className="pt-2 font-bold text-gray-800">Total</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.rent, 0))}</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.insurance, 0))}</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(totalFixedCosts)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <p className="mt-2 text-xs text-gray-400">Rent is a pass-through (excluded from Expenses KPI); Insurance is counted as a real expense.</p>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
+          <h2 className="mb-4 font-semibold text-gray-800">Investment Contributions — Monthly</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                <th className="pb-2 text-left font-medium">Month</th>
+                <th className="pb-2 text-right font-medium">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {months.map(m => (
+                <tr key={m.month} className="hover:bg-gray-50">
+                  <td className="py-2 font-medium text-gray-800">{m.label}</td>
+                  <td className="py-2 text-right tabular-nums text-gray-600">{m.investment ? fmt(m.investment) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-200">
+                <td className="pt-2 font-bold text-gray-800">Total</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(totalInvestment)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <p className="mt-2 text-xs text-gray-400">Transfers into investment accounts (excluded from Expenses KPI).</p>
+        </div>
       </div>
 
       {/* Net worth + Insights */}

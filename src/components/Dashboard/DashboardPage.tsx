@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { MonthSelector } from './MonthSelector';
 import { IncomeExpenseBar } from './IncomeExpenseBar';
 import { CategoryDonut } from './CategoryDonut';
+import { CategoryTable } from './CategoryTable';
 import { TopMerchants } from './TopMerchants';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
@@ -78,6 +79,8 @@ export function DashboardPage() {
   const stats = computeStats(transactions);
   const net = stats.income - stats.expense;
   const hasTransactions = transactions.length > 0;
+  const fixedCosts = stats.rent + (stats.byCategory['Insurance'] ?? 0);
+  const uncategorizedCount = transactions.filter(t => t.category === 'Uncategorized').length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -97,6 +100,16 @@ export function DashboardPage() {
         </div>
       ) : (
         <>
+          {uncategorizedCount > 0 && (
+            <a
+              href="#/transactions"
+              className="mb-4 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
+            >
+              <span>⚠️ {uncategorizedCount} uncategorized transaction{uncategorizedCount > 1 ? 's' : ''} this month</span>
+              <span className="font-medium underline">Review →</span>
+            </a>
+          )}
+
           {/* KPI row */}
           <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -105,9 +118,11 @@ export function DashboardPage() {
               <p className="mt-1 text-xs text-gray-400">Family transfers</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Fixed Cost</p>
-              <p className="mt-1 text-2xl font-bold text-amber-700">{fmt(stats.rent)}</p>
-              <p className="mt-1 text-xs text-amber-500">House rent (pass-through)</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Fixed Costs</p>
+              <p className="mt-1 text-2xl font-bold text-amber-700">{fmt(fixedCosts)}</p>
+              <p className="mt-1 text-xs text-amber-500">
+                Rent {fmt(stats.rent)} (pass-through) + Insurance {fmt(stats.byCategory['Insurance'] ?? 0)}
+              </p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Expenses</p>
@@ -124,6 +139,9 @@ export function DashboardPage() {
           <div className="grid grid-cols-2 gap-6">
             <IncomeExpenseBar month={selectedMonth} income={stats.income} expense={stats.expense} />
             <CategoryDonut byCategory={stats.byCategory} />
+          </div>
+          <div className="mt-6">
+            <CategoryTable byCategory={stats.byCategory} />
           </div>
           <div className="mt-6">
             <TopMerchants transactions={transactions} />
