@@ -1,12 +1,13 @@
 interface Props {
   byCategory: Record<string, number>;
+  month: string;
 }
 
 function fmt(v: number) {
   return v.toLocaleString('id-ID');
 }
 
-export function CategoryTable({ byCategory }: Props) {
+export function CategoryTable({ byCategory, month }: Props) {
   const total = Object.values(byCategory).reduce((s, v) => s + v, 0);
   const rows = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
 
@@ -26,9 +27,13 @@ export function CategoryTable({ byCategory }: Props) {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {rows.map(([name, value]) => (
-              <tr key={name} className="hover:bg-gray-50">
-                <td className="py-2 text-gray-700">{name}</td>
-                <td className="py-2 text-right tabular-nums font-medium text-gray-800">{fmt(value)}</td>
+              <tr key={name} className="group cursor-pointer hover:bg-blue-50">
+                <td className="py-2 text-gray-700">
+                  <a href={`#/transactions?month=${month}&category=${encodeURIComponent(name)}`} className="block group-hover:text-blue-700 group-hover:underline">
+                    {name}
+                  </a>
+                </td>
+                <td className="py-2 text-right tabular-nums font-medium text-gray-800 group-hover:text-blue-700">{fmt(value)}</td>
                 <td className="py-2 text-right tabular-nums text-gray-400">{((value / total) * 100).toFixed(1)}%</td>
               </tr>
             ))}

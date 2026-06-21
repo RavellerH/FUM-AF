@@ -42,7 +42,13 @@ function computeStats(txns: Transaction[]) {
     return acc;
   }, {});
 
-  return { income, rent, expense, byCategory };
+  // Aid/reimbursements received (e.g. family covering a medical bill or purchase).
+  // Kept out of the Income KPI and NOT subtracted from Expenses — the spending still happened.
+  const aid = txns
+    .filter(t => t.type === 'income' && t.category === 'Reimbursement')
+    .reduce((s, t) => s + t.amount, 0);
+
+  return { income, rent, expense, byCategory, aid };
 }
 
 export function DashboardPage() {
@@ -110,6 +116,16 @@ export function DashboardPage() {
             </a>
           )}
 
+          {stats.aid > 0 && (
+            <a
+              href={`#/transactions?month=${selectedMonth}&category=Reimbursement`}
+              className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800 hover:bg-blue-100"
+            >
+              <span>💙 {fmt(stats.aid)} received this month as family aid/reimbursement — already counted in full in Expenses below, since the spending was real</span>
+              <span className="font-medium underline">View →</span>
+            </a>
+          )}
+
           {/* KPI row */}
           <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -141,7 +157,7 @@ export function DashboardPage() {
             <CategoryDonut byCategory={stats.byCategory} />
           </div>
           <div className="mt-6">
-            <CategoryTable byCategory={stats.byCategory} />
+            <CategoryTable byCategory={stats.byCategory} month={selectedMonth} />
           </div>
           <div className="mt-6">
             <TopMerchants transactions={transactions} />
