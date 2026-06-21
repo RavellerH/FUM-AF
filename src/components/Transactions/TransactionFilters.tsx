@@ -1,12 +1,23 @@
-import type { TransactionFilters } from '../../hooks/useTransactions';
+import { MultiSelectDropdown } from './MultiSelectDropdown';
+import type { TransactionType } from '../../types';
+
+export interface PageFilters {
+  dateFrom: string;
+  dateTo: string;
+  months: string[];
+  type: TransactionType | '';
+  categories: string[];
+  amountMin: string;
+  amountMax: string;
+}
 
 interface Props {
-  filters: TransactionFilters;
+  filters: PageFilters;
   months: string[];
   categories: string[];
   search: string;
   uncategorizedOnly: boolean;
-  onChange: (f: TransactionFilters) => void;
+  onChange: (f: PageFilters) => void;
   onSearch: (s: string) => void;
   onUncategorizedOnly: (v: boolean) => void;
 }
@@ -16,6 +27,16 @@ export function TransactionFilters({
   onChange, onSearch, onUncategorizedOnly,
 }: Props) {
   const selectCls = "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none";
+  const inputCls = "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none";
+
+  const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.months.length || filters.type
+    || filters.categories.length || filters.amountMin || filters.amountMax || uncategorizedOnly || search;
+
+  const clearAll = () => {
+    onChange({ dateFrom: '', dateTo: '', months: [], type: '', categories: [], amountMin: '', amountMax: '' });
+    onSearch('');
+    onUncategorizedOnly(false);
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -38,21 +59,65 @@ export function TransactionFilters({
         )}
       </div>
 
-      <select value={filters.month ?? ''} onChange={e => onChange({ ...filters, month: e.target.value || undefined })} className={selectCls}>
-        <option value="">All months</option>
-        {months.map(m => <option key={m} value={m}>{m}</option>)}
-      </select>
+      {/* Date range */}
+      <div className="flex items-center gap-1.5">
+        <input
+          type="date"
+          value={filters.dateFrom}
+          onChange={e => onChange({ ...filters, dateFrom: e.target.value })}
+          className={inputCls}
+          title="From date"
+        />
+        <span className="text-xs text-gray-400">to</span>
+        <input
+          type="date"
+          value={filters.dateTo}
+          onChange={e => onChange({ ...filters, dateTo: e.target.value })}
+          className={inputCls}
+          title="To date"
+        />
+      </div>
 
-      <select value={filters.type ?? ''} onChange={e => onChange({ ...filters, type: e.target.value as TransactionFilters['type'] })} className={selectCls}>
+      {/* Month multi-select */}
+      <MultiSelectDropdown
+        label="Months"
+        options={months}
+        selected={filters.months}
+        onChange={vals => onChange({ ...filters, months: vals })}
+      />
+
+      <select value={filters.type} onChange={e => onChange({ ...filters, type: e.target.value as PageFilters['type'] })} className={selectCls}>
         <option value="">All types</option>
         <option value="income">Income</option>
         <option value="expense">Expense</option>
       </select>
 
-      <select value={filters.category ?? ''} onChange={e => onChange({ ...filters, category: e.target.value || undefined })} className={selectCls}>
-        <option value="">All categories</option>
-        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
+      {/* Category multi-select */}
+      <MultiSelectDropdown
+        label="Categories"
+        options={categories}
+        selected={filters.categories}
+        onChange={vals => onChange({ ...filters, categories: vals })}
+      />
+
+      {/* Amount range */}
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          placeholder="Min amount"
+          value={filters.amountMin}
+          onChange={e => onChange({ ...filters, amountMin: e.target.value })}
+          className={`${inputCls} w-28`}
+        />
+        <span className="text-xs text-gray-400">–</span>
+        <input
+          type="number"
+          placeholder="Max amount"
+          value={filters.amountMax}
+          onChange={e => onChange({ ...filters, amountMax: e.target.value })}
+          className={`${inputCls} w-28`}
+        />
+      </div>
 
       {/* Uncategorized toggle */}
       <button
@@ -66,6 +131,12 @@ export function TransactionFilters({
         <span className={`h-2 w-2 rounded-full ${uncategorizedOnly ? 'bg-yellow-500' : 'bg-gray-300'}`} />
         Uncategorized only
       </button>
+
+      {hasActiveFilters && (
+        <button onClick={clearAll} className="text-sm text-gray-400 hover:text-gray-600 underline">
+          Clear filters
+        </button>
+      )}
     </div>
   );
 }

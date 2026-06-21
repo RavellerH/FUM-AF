@@ -23,7 +23,8 @@ export function useTransactions() {
       if (filters.month) {
         const [year, month] = filters.month.split('-');
         const start = `${year}-${month}-01`;
-        const end = new Date(Number(year), Number(month), 0).toISOString().split('T')[0];
+        const lastDay = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+        const end = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
         query = query.gte('date', start).lte('date', end);
       }
       if (filters.type) query = query.eq('type', filters.type);

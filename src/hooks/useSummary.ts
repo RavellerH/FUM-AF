@@ -31,7 +31,8 @@ export function useSummary() {
   const buildAndUpsertSummary = useCallback(async (month: string, userId: string) => {
     const [year, mon] = month.split('-');
     const start = `${year}-${mon}-01`;
-    const end = new Date(Number(year), Number(mon), 0).toISOString().split('T')[0];
+    const lastDay = new Date(Date.UTC(Number(year), Number(mon), 0)).getUTCDate();
+    const end = `${year}-${mon}-${String(lastDay).padStart(2, '0')}`;
 
     const { data: txns, error: txErr } = await supabase
       .from('transactions')
