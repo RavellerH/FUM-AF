@@ -703,7 +703,25 @@ export function AnalysisPage() {
             {/* Stock sector breakdown */}
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <h3 className="mb-4 font-semibold text-gray-800">Stock Sector Mix</h3>
-              <div className="space-y-3">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={sectorData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={75}
+                    label={({ name, value }) => `${name} ${value}%`}
+                    labelLine={false}
+                  >
+                    {sectorData.map((_, i) => <Cell key={i} fill={SECTOR_COLORS[i % SECTOR_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => `${v}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-2 space-y-3">
                 {sectorData.map(({ name, value }, i) => (
                   <div key={name} className="flex items-center gap-3">
                     <span className="w-28 shrink-0 text-sm text-gray-600">{name}</span>
