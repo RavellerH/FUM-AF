@@ -25,7 +25,7 @@ const CAT_COLORS: Record<string, string> = {
   Other:           '#cbd5e1',
 };
 const DONUT_COLORS = ['#ec4899','#f59e0b','#f43f5e','#06b6d4','#94a3b8','#6366f1','#10b981','#8b5cf6'];
-const ALLOC_COLORS = { Stocks: '#3b82f6', BTC: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
+const ALLOC_COLORS = { Stocks: '#3b82f6', Crypto: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
 const SECTOR_COLORS = ['#3b82f6','#6366f1','#10b981','#f59e0b','#f43f5e'];
 
 function fmt(v: number) { return Math.round(v).toLocaleString('id-ID'); }
@@ -156,13 +156,13 @@ function computeInvestmentInsights(
   insights.push({
     type: cryptoPct > 40 ? 'warning' : 'info',
     title: `Crypto allocation: ${cryptoPct.toFixed(1)}% of portfolio`,
-    body: `BTC ${pct(nw.btc, nw.total)}% (store of value) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
+    body: `Crypto investing ${pct(nw.btc, nw.total)}% (${[...new Set(p.crypto_investing.map(c => c.symbol))].join(' + ')}) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
   });
 
   insights.push({
     type: 'info',
     title: `Banking concentration: ${bankPct}% of stock portfolio`,
-    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining) and SINI add some commodity exposure.`,
+    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining), SINI (industrial), and SSIA (property/construction) add some diversification.`,
   });
 
   if (p.stocks_pnl_pct < -10) {
@@ -180,10 +180,13 @@ function computeInvestmentInsights(
   });
 
   if (p.crypto_investing.length > 1) {
+    const symbols = [...new Set(p.crypto_investing.map(c => c.symbol))];
     insights.push({
       type: 'info',
-      title: 'BTC split across 2 exchanges',
-      body: `${p.crypto_investing.map(c => `${c.platform}: ${c.amount.toFixed(8)} BTC`).join(' · ')}. Consider consolidating to reduce exchange counterparty risk.`,
+      title: symbols.length > 1
+        ? 'Crypto investing split across exchanges'
+        : `${symbols[0]} split across ${p.crypto_investing.length} exchanges`,
+      body: `${p.crypto_investing.map(c => `${c.platform}: ${c.amount.toFixed(8)} ${c.symbol}`).join(' · ')}. Consider consolidating to reduce exchange counterparty risk.`,
     });
   }
 
@@ -283,7 +286,7 @@ export function AnalysisPage() {
 
   const allocData = netWorth ? [
     { name: 'Stocks', value: netWorth.stocks },
-    { name: 'BTC', value: netWorth.btc },
+    { name: 'Crypto', value: netWorth.btc },
     { name: 'Hyperliquid', value: netWorth.hl },
     { name: 'Savings', value: netWorth.savings },
   ] : [];
@@ -532,7 +535,7 @@ export function AnalysisPage() {
             <div className="space-y-2">
               {[
                 { label: 'Stocks (StockBit)', value: netWorth.stocks, note: `${portfolio!.stocks_pnl_pct}% unrealized`, color: 'bg-blue-500' },
-                { label: 'BTC (Indodax + FLOQ)', value: netWorth.btc, note: 'Crypto investing', color: 'bg-orange-400' },
+                { label: 'Crypto (Indodax + FLOQ)', value: netWorth.btc, note: 'Crypto investing', color: 'bg-orange-400' },
                 { label: 'Hyperliquid', value: netWorth.hl, note: `$${portfolio!.crypto_trading.total_equity_usd} @ ${fmt(usdIdr)}`, color: 'bg-purple-400' },
                 { label: 'Deviota Savings', value: netWorth.savings, note: 'Liquid savings', color: 'bg-emerald-400' },
               ].map(({ label, value, note, color }) => (
@@ -694,7 +697,7 @@ export function AnalysisPage() {
                   ))}
                   {portfolio.crypto_investing.map(c => (
                     <tr key={c.platform} className="hover:bg-gray-50">
-                      <td className="py-2 font-medium text-gray-800">BTC · {c.platform}</td>
+                      <td className="py-2 font-medium text-gray-800">{c.symbol} · {c.platform}</td>
                       <td className="py-2 text-right tabular-nums text-gray-600">{fmt(c.value_idr)}</td>
                       <td className="py-2 text-right tabular-nums text-gray-500">{pct(c.value_idr, netWorth.total)}%</td>
                       <td className="py-2 text-right">
