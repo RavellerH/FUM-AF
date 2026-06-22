@@ -91,7 +91,7 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <MonthSelector months={months} value={selectedMonth} onChange={setSelectedMonth} />
       </div>
@@ -110,7 +110,7 @@ export function DashboardPage() {
           {uncategorizedCount > 0 && (
             <a
               href={`#/transactions?month=${selectedMonth}&category=Uncategorized`}
-              className="mb-4 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
+              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
             >
               <span>⚠️ {uncategorizedCount} uncategorized transaction{uncategorizedCount > 1 ? 's' : ''} this month</span>
               <span className="font-medium underline">Review →</span>
@@ -120,7 +120,7 @@ export function DashboardPage() {
           {stats.aid > 0 && (
             <a
               href={`#/transactions?month=${selectedMonth}&category=Reimbursement`}
-              className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800 hover:bg-blue-100"
+              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800 hover:bg-blue-100"
             >
               <span>💙 {fmt(stats.aid)} received this month as family aid/reimbursement — already counted in full in Expenses below, since the spending was real</span>
               <span className="font-medium underline">View →</span>
@@ -128,39 +128,39 @@ export function DashboardPage() {
           )}
 
           {/* KPI row */}
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-5">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Income</p>
-              <p className="mt-1 text-2xl font-bold text-green-600">{fmt(stats.income)}</p>
+              <p className="mt-1 text-xl font-bold text-green-600 sm:text-2xl">{fmt(stats.income)}</p>
               <p className="mt-1 text-xs text-gray-400">Family transfers</p>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Fixed Costs</p>
-              <p className="mt-1 text-2xl font-bold text-amber-700">{fmt(fixedCosts)}</p>
+              <p className="mt-1 text-xl font-bold text-amber-700 sm:text-2xl">{fmt(fixedCosts)}</p>
               <p className="mt-1 text-xs text-amber-500">
                 Rent {fmt(stats.rent)} (pass-through) + Insurance {fmt(stats.byCategory['Insurance'] ?? 0)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Expenses</p>
-              <p className="mt-1 text-2xl font-bold text-red-600">{fmt(stats.expense)}</p>
+              <p className="mt-1 text-xl font-bold text-red-600 sm:text-2xl">{fmt(stats.expense)}</p>
               <p className="mt-1 text-xs text-gray-400">Variable spending</p>
             </div>
             {stats.aid > 0 && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-blue-700">Expenses − Aid</p>
-                <p className="mt-1 text-2xl font-bold text-blue-700">{fmt(expenseAfterAid)}</p>
+                <p className="mt-1 text-xl font-bold text-blue-700 sm:text-2xl">{fmt(expenseAfterAid)}</p>
                 <p className="mt-1 text-xs text-blue-500">Expenses {fmt(stats.expense)} − aid received {fmt(stats.aid)}</p>
               </div>
             )}
-            <div className={`rounded-xl border p-5 ${net >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+            <div className={`rounded-xl border p-4 sm:p-5 ${net >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Net</p>
-              <p className={`mt-1 text-2xl font-bold ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(net)}</p>
+              <p className={`mt-1 text-xl font-bold sm:text-2xl ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(net)}</p>
               <p className="mt-1 text-xs text-gray-400">Income − expenses</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <IncomeExpenseBar month={selectedMonth} income={stats.income} expense={stats.expense} />
             <CategoryDonut byCategory={stats.byCategory} />
           </div>

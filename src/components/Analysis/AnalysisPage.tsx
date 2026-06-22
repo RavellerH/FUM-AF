@@ -325,7 +325,7 @@ export function AnalysisPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Financial Analysis</h1>
           <p className="text-xs text-gray-400 mt-0.5">
@@ -538,14 +538,14 @@ export function AnalysisPage() {
               ].map(({ label, value, note, color }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className={`h-2 w-2 rounded-full flex-shrink-0 ${color}`} />
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
+                  <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <span className="text-sm text-gray-700">{label}</span>
-                      <span className="ml-2 text-xs text-gray-400">{note}</span>
+                      <span className="ml-2 hidden text-xs text-gray-400 sm:inline">{note}</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-800 tabular-nums">{fmt(Math.round(value))}</span>
+                    <span className="shrink-0 text-sm font-semibold text-gray-800 tabular-nums">{fmt(Math.round(value))}</span>
                   </div>
-                  <div className="w-24 h-1.5 rounded-full bg-gray-100">
+                  <div className="hidden h-1.5 w-24 shrink-0 rounded-full bg-gray-100 sm:block">
                     <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${(value / netWorth.total) * 100}%` }} />
                   </div>
                 </div>

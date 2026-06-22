@@ -12,8 +12,8 @@ export function TopMerchants({ transactions }: { transactions: Transaction[] }) 
       {!sorted.length ? (
         <p className="text-sm text-gray-400">No transactions this month</p>
       ) : (
-        <div className="max-h-96 overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-96 overflow-auto">
+          <table className="w-full min-w-[480px] text-sm">
             <thead className="sticky top-0 bg-white">
               <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
                 <th className="pb-2 pr-4 text-left font-medium">Date</th>
