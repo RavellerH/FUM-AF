@@ -83,8 +83,8 @@ export function DashboardPage() {
   }, [selectedMonth, session]);
 
   const stats = computeStats(transactions);
-  const net = stats.income - stats.expense;
   const expenseAfterAid = stats.expense - stats.aid;
+  const net = stats.income - expenseAfterAid;
   const hasTransactions = transactions.length > 0;
   const fixedCosts = stats.rent + (stats.byCategory['Insurance'] ?? 0);
   const uncategorizedCount = transactions.filter(t => t.category === 'Uncategorized').length;
@@ -156,12 +156,12 @@ export function DashboardPage() {
             <div className={`rounded-xl border p-4 sm:p-5 ${net >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Net</p>
               <p className={`mt-1 text-xl font-bold sm:text-2xl ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(net)}</p>
-              <p className="mt-1 text-xs text-gray-400">Income − expenses</p>
+              <p className="mt-1 text-xs text-gray-400">Income − (expenses − aid)</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <IncomeExpenseBar month={selectedMonth} income={stats.income} expense={stats.expense} />
+            <IncomeExpenseBar month={selectedMonth} income={stats.income} expense={stats.expense} net={net} />
             <CategoryDonut byCategory={stats.byCategory} />
           </div>
           <div className="mt-6">
