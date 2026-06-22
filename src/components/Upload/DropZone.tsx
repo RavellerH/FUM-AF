@@ -16,7 +16,7 @@ export function DropZone({ onFile, disabled }: Props) {
   return (
     <div
       {...getRootProps()}
-      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-colors ${
+      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors sm:p-12 ${
         isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-gray-100'
       } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >

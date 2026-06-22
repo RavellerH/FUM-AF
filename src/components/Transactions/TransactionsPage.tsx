@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { TransactionFilters } from './TransactionFilters';
 import type { PageFilters } from './TransactionFilters';
 import { TransactionRow } from './TransactionRow';
+import { TransactionCard } from './TransactionCard';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
 import type { Transaction, TransactionType } from '../../types';
@@ -144,7 +145,7 @@ export function TransactionsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
         <span className="text-sm text-gray-500">{visible.length} of {transactions.length} records</span>
       </div>
@@ -165,9 +166,9 @@ export function TransactionsPage() {
 
       {/* Stats bar */}
       {visible.length > 0 && (
-        <div className="mb-4 flex gap-3">
+        <div className="mb-4 flex flex-wrap gap-3">
           {/* Income + Expense side by side in one card */}
-          <div className="flex flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="flex flex-1 min-w-[200px] overflow-hidden rounded-lg border border-gray-200 bg-white">
             <div className="flex-1 border-r border-gray-100 px-5 py-3">
               <p className="text-xs text-gray-400 uppercase tracking-wide">Income</p>
               <p className="text-lg font-bold text-emerald-600">+{fmt(stats.income)}</p>
@@ -179,7 +180,7 @@ export function TransactionsPage() {
           </div>
 
           {/* Net */}
-          <div className="rounded-lg border border-gray-200 bg-white px-5 py-3">
+          <div className="flex-1 min-w-[140px] rounded-lg border border-gray-200 bg-white px-5 py-3">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Net</p>
             <p className={`text-lg font-bold ${stats.net >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
               {stats.net >= 0 ? '+' : '−'}{fmt(Math.abs(stats.net))}
@@ -187,7 +188,7 @@ export function TransactionsPage() {
           </div>
 
           {/* Uncategorized */}
-          <div className={`rounded-lg border px-5 py-3 ${stats.uncategorized > 0 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white'}`}>
+          <div className={`flex-1 min-w-[140px] rounded-lg border px-5 py-3 ${stats.uncategorized > 0 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white'}`}>
             <p className="text-xs text-gray-400 uppercase tracking-wide">Uncategorized</p>
             <p className={`text-lg font-bold ${stats.uncategorized > 0 ? 'text-yellow-700' : 'text-gray-400'}`}>
               {stats.uncategorized}
@@ -198,58 +199,35 @@ export function TransactionsPage() {
 
       {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
 
-      {/* Table */}
+      {/* Transactions */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         {loading ? (
           <div className="flex justify-center py-20"><Spinner /></div>
         ) : !visible.length ? (
           <div className="py-20 text-center text-sm text-gray-400">No transactions found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 shadow-sm">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('date')}>
-                    Date{sortIndicator('date')}
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('amount')}>
-                    Amount{sortIndicator('amount')}
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium">Curr</th>
-                  <th className="px-4 py-3 text-left font-medium">Type</th>
-                  <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('category')}>
-                    Category{sortIndicator('category')}
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium">Description</th>
-                  <th className="px-4 py-3 text-left font-medium">Source</th>
-                  <th className="px-4 py-3 text-left font-medium"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {isDateSort ? dates.map(date => {
-                  const rows = grouped!.get(date)!;
-                  const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
-                  const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
-                  return (
-                    <>
-                      <tr key={`date-${date}`} className="border-b border-blue-100 bg-blue-50/70">
-                        <td colSpan={8} className="px-4 py-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-blue-700">
-                              {new Date(date + 'T00:00:00').toLocaleDateString('id-ID', {
-                                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                              })}
-                              <span className="ml-2 font-normal text-blue-400">({rows.length})</span>
-                            </span>
-                            <span className="flex gap-4 text-xs">
-                              {dayIncome > 0 && <span className="font-medium text-emerald-600">+{fmt(dayIncome)}</span>}
-                              {dayExpense > 0 && <span className="font-medium text-red-500">−{fmt(dayExpense)}</span>}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
+          <>
+            {/* Mobile: stacked cards, no horizontal scrolling */}
+            <div className="divide-y divide-gray-100 sm:hidden">
+              {isDateSort ? dates.map(date => {
+                const rows = grouped!.get(date)!;
+                const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
+                const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
+                return (
+                  <div key={`date-${date}`}>
+                    <div className="flex items-center justify-between border-b border-blue-100 bg-blue-50/70 px-3 py-1.5">
+                      <span className="text-xs font-semibold text-blue-700">
+                        {new Date(date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        <span className="ml-1.5 font-normal text-blue-400">({rows.length})</span>
+                      </span>
+                      <span className="flex gap-3 text-xs">
+                        {dayIncome > 0 && <span className="font-medium text-emerald-600">+{fmt(dayIncome)}</span>}
+                        {dayExpense > 0 && <span className="font-medium text-red-500">−{fmt(dayExpense)}</span>}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-gray-100">
                       {rows.map(t => (
-                        <TransactionRow
+                        <TransactionCard
                           key={t.id}
                           transaction={t}
                           categories={categoryNames}
@@ -258,21 +236,91 @@ export function TransactionsPage() {
                           onAddRule={addRule}
                         />
                       ))}
-                    </>
-                  );
-                }) : sorted.map(t => (
-                  <TransactionRow
-                    key={t.id}
-                    transaction={t}
-                    categories={categoryNames}
-                    onUpdate={updateTransaction}
-                    onDelete={deleteTransaction}
-                    onAddRule={addRule}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                );
+              }) : sorted.map(t => (
+                <TransactionCard
+                  key={t.id}
+                  transaction={t}
+                  categories={categoryNames}
+                  onUpdate={updateTransaction}
+                  onDelete={deleteTransaction}
+                  onAddRule={addRule}
+                />
+              ))}
+            </div>
+
+            {/* Desktop/tablet: full table */}
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full">
+                <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 shadow-sm">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('date')}>
+                      Date{sortIndicator('date')}
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('amount')}>
+                      Amount{sortIndicator('amount')}
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium">Curr</th>
+                    <th className="px-4 py-3 text-left font-medium">Type</th>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('category')}>
+                      Category{sortIndicator('category')}
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium">Description</th>
+                    <th className="px-4 py-3 text-left font-medium">Source</th>
+                    <th className="px-4 py-3 text-left font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isDateSort ? dates.map(date => {
+                    const rows = grouped!.get(date)!;
+                    const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
+                    const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
+                    return (
+                      <>
+                        <tr key={`date-${date}`} className="border-b border-blue-100 bg-blue-50/70">
+                          <td colSpan={8} className="px-4 py-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-blue-700">
+                                {new Date(date + 'T00:00:00').toLocaleDateString('id-ID', {
+                                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                                })}
+                                <span className="ml-2 font-normal text-blue-400">({rows.length})</span>
+                              </span>
+                              <span className="flex gap-4 text-xs">
+                                {dayIncome > 0 && <span className="font-medium text-emerald-600">+{fmt(dayIncome)}</span>}
+                                {dayExpense > 0 && <span className="font-medium text-red-500">−{fmt(dayExpense)}</span>}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        {rows.map(t => (
+                          <TransactionRow
+                            key={t.id}
+                            transaction={t}
+                            categories={categoryNames}
+                            onUpdate={updateTransaction}
+                            onDelete={deleteTransaction}
+                            onAddRule={addRule}
+                          />
+                        ))}
+                      </>
+                    );
+                  }) : sorted.map(t => (
+                    <TransactionRow
+                      key={t.id}
+                      transaction={t}
+                      categories={categoryNames}
+                      onUpdate={updateTransaction}
+                      onDelete={deleteTransaction}
+                      onAddRule={addRule}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
