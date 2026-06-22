@@ -32,6 +32,11 @@ export interface PortfolioData {
   updated_at: string;
 }
 
+export interface PortfolioSnapshot {
+  data: PortfolioData;
+  snapshot_at: string;
+}
+
 export function usePortfolio() {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,8 +56,26 @@ export function usePortfolio() {
     }
   }, []);
 
+  const fetchPreviousSnapshot = useCallback(async (): Promise<PortfolioSnapshot | null> => {
+    const { data, error } = await supabase
+      .from('portfolio_history')
+      .select('data, snapshot_at')
+      .order('snapshot_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as PortfolioSnapshot | null) ?? null;
+  }, []);
+
   const savePortfolio = useCallback(async (userId: string, data: PortfolioData) => {
     data.updated_at = new Date().toISOString().slice(0, 10);
+
+    // Archive the current state before overwriting, so "vs last time" always has a baseline.
+    const { data: existing } = await supabase.from('portfolio').select('data').maybeSingle();
+    if (existing?.data) {
+      await supabase.from('portfolio_history').insert({ user_id: userId, data: existing.data });
+    }
+
     const { error } = await supabase
       .from('portfolio')
       .upsert({ user_id: userId, data, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
@@ -60,5 +83,5 @@ export function usePortfolio() {
     setPortfolio(data);
   }, []);
 
-  return { portfolio, loading, error, fetchPortfolio, savePortfolio };
+  return { portfolio, loading, error, fetchPortfolio, savePortfolio, fetchPreviousSnapshot };
 }
