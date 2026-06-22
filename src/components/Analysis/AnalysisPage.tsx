@@ -11,7 +11,7 @@ import {
   AreaChart, Area,
 } from 'recharts';
 import type { Transaction } from '../../types';
-import type { PortfolioData } from '../../hooks/usePortfolio';
+import type { PortfolioData, PortfolioSnapshot } from '../../hooks/usePortfolio';
 
 const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 const INCOME_CAT = 'Family';
@@ -35,6 +35,7 @@ function fmtK(v: number) {
   return v.toString();
 }
 function pct(v: number, total: number) { return ((v / total) * 100).toFixed(1); }
+function allocPct(v: number, total: number) { return total ? Math.round((v / total) * 1000) / 10 : 0; }
 
 interface MonthStats {
   label: string;
@@ -201,7 +202,8 @@ function computeInvestmentInsights(
 
 export function AnalysisPage() {
   const { session } = useAuth();
-  const { portfolio, fetchPortfolio } = usePortfolio();
+  const { portfolio, fetchPortfolio, fetchPreviousSnapshot } = usePortfolio();
+  const [prevSnapshot, setPrevSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [usdIdr, setUsdIdr] = useState<number>(16500);
@@ -238,6 +240,7 @@ export function AnalysisPage() {
     setTxns(txnData);
     setUsdIdr(rate);
     fetchPortfolio();
+    fetchPreviousSnapshot().then(setPrevSnapshot).catch(() => setPrevSnapshot(null));
     setLastRefresh(new Date());
     setLoading(false);
     refreshInsights(txnData);
@@ -283,6 +286,61 @@ export function AnalysisPage() {
     if (!portfolio || !netWorth) return [];
     return computeInvestmentInsights(portfolio, netWorth);
   }, [portfolio, netWorth]);
+
+  // Net worth at the previous snapshot, for "vs last time" comparisons.
+  const prevNetWorth = useMemo(() => {
+    if (!prevSnapshot) return null;
+    const p = prevSnapshot.data;
+    const stocks = p.stocks.reduce((s, h) => s + h.value_idr, 0);
+    const btc = p.crypto_investing.reduce((s, c) => s + c.value_idr, 0);
+    const hl = p.crypto_trading.total_equity_usd * usdIdr;
+    const savings = p.savings.reduce((s, sv) => s + sv.value_idr, 0);
+    return { stocks, btc, hl, savings, total: stocks + btc + hl + savings };
+  }, [prevSnapshot, usdIdr]);
+
+  // Per-holding before/after deltas, matched by symbol (stocks), platform (crypto), name (savings).
+  const holdingDeltas = useMemo(() => {
+    if (!portfolio || !prevSnapshot || !netWorth || !prevNetWorth) return [];
+    const prev = prevSnapshot.data;
+    const rows: { group: string; label: string; before: number; now: number; nowExtra?: string }[] = [];
+
+    const stockSymbols = new Set([...prev.stocks.map(s => s.symbol), ...portfolio.stocks.map(s => s.symbol)]);
+    for (const sym of stockSymbols) {
+      rows.push({
+        group: 'Stocks',
+        label: sym,
+        before: prev.stocks.find(s => s.symbol === sym)?.value_idr ?? 0,
+        now: portfolio.stocks.find(s => s.symbol === sym)?.value_idr ?? 0,
+      });
+    }
+
+    const platforms = new Set([...prev.crypto_investing.map(c => c.platform), ...portfolio.crypto_investing.map(c => c.platform)]);
+    for (const plat of platforms) {
+      const before = prev.crypto_investing.find(c => c.platform === plat);
+      const now = portfolio.crypto_investing.find(c => c.platform === plat);
+      rows.push({
+        group: 'Crypto',
+        label: plat,
+        before: before?.value_idr ?? 0,
+        now: now?.value_idr ?? 0,
+        nowExtra: now ? `${now.amount.toFixed(8)} ${now.symbol}` : undefined,
+      });
+    }
+
+    rows.push({ group: 'Crypto', label: portfolio.crypto_trading.platform, before: prevNetWorth.hl, now: netWorth.hl });
+
+    const savingsNames = new Set([...prev.savings.map(s => s.name), ...portfolio.savings.map(s => s.name)]);
+    for (const name of savingsNames) {
+      rows.push({
+        group: 'Savings',
+        label: name,
+        before: prev.savings.find(s => s.name === name)?.value_idr ?? 0,
+        now: portfolio.savings.find(s => s.name === name)?.value_idr ?? 0,
+      });
+    }
+
+    return rows;
+  }, [portfolio, prevSnapshot, netWorth, prevNetWorth]);
 
   const allocData = netWorth ? [
     { name: 'Stocks', value: netWorth.stocks },
@@ -767,6 +825,120 @@ export function AnalysisPage() {
               </div>
             </div>
           </div>
+
+          {/* Portfolio Changes vs last snapshot */}
+          {prevSnapshot && prevNetWorth && (
+            <>
+              <div className="mt-8 mb-4">
+                <h2 className="text-lg font-bold text-gray-900">Portfolio Changes</h2>
+                <p className="text-xs text-gray-400">
+                  vs snapshot from {new Date(prevSnapshot.snapshot_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+
+              {/* Delta KPIs */}
+              <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: 'Net Worth', now: netWorth.total, before: prevNetWorth.total },
+                  { label: 'Stocks', now: netWorth.stocks, before: prevNetWorth.stocks },
+                  { label: 'Crypto Investing', now: netWorth.btc, before: prevNetWorth.btc },
+                  { label: 'Hyperliquid', now: netWorth.hl, before: prevNetWorth.hl },
+                ].map(({ label, now, before }) => {
+                  const delta = now - before;
+                  const deltaPct = before !== 0 ? (delta / before) * 100 : 0;
+                  return (
+                    <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+                      <p className="mt-1 text-lg font-bold text-gray-900">{fmt(now)}</p>
+                      <p className={`mt-0.5 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {delta >= 0 ? '▲' : '▼'} {fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Net worth trend */}
+                <div className="rounded-xl border border-gray-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-gray-800">Net Worth Trend</h3>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart
+                      data={[
+                        { name: 'Last', value: prevNetWorth.total },
+                        { name: 'Now', value: netWorth.total },
+                      ]}
+                      margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v) => fmt(v as number)} />
+                      <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} fill="#6366f1" fillOpacity={0.15} dot={{ r: 4 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Allocation shift */}
+                <div className="rounded-xl border border-gray-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-gray-800">Capital Allocation Shift</h3>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <ComposedChart
+                      data={[
+                        { name: 'Stocks', Last: allocPct(prevNetWorth.stocks, prevNetWorth.total), Now: allocPct(netWorth.stocks, netWorth.total) },
+                        { name: 'Crypto', Last: allocPct(prevNetWorth.btc, prevNetWorth.total), Now: allocPct(netWorth.btc, netWorth.total) },
+                        { name: 'Hyperliquid', Last: allocPct(prevNetWorth.hl, prevNetWorth.total), Now: allocPct(netWorth.hl, netWorth.total) },
+                        { name: 'Savings', Last: allocPct(prevNetWorth.savings, prevNetWorth.total), Now: allocPct(netWorth.savings, netWorth.total) },
+                      ]}
+                      margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v) => `${v}%`} />
+                      <Legend iconType="circle" iconSize={8} />
+                      <Bar dataKey="Last" fill="#cbd5e1" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Now" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Holding-by-holding delta table */}
+              <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
+                <h3 className="mb-4 font-semibold text-gray-800">Holding-by-Holding Change</h3>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                      <th className="pb-2 text-left font-medium">Asset</th>
+                      <th className="pb-2 text-right font-medium">Last</th>
+                      <th className="pb-2 text-right font-medium">Now</th>
+                      <th className="pb-2 text-right font-medium">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {holdingDeltas.map(({ group, label, before, now, nowExtra }) => {
+                      const delta = now - before;
+                      const deltaPct = before !== 0 ? (delta / before) * 100 : (now !== 0 ? 100 : 0);
+                      return (
+                        <tr key={`${group}-${label}`} className="hover:bg-gray-50">
+                          <td className="py-2 font-medium text-gray-800">
+                            {group} · {label}
+                            {nowExtra && <span className="ml-1.5 text-xs text-gray-400">({nowExtra})</span>}
+                          </td>
+                          <td className="py-2 text-right tabular-nums text-gray-500">{fmt(before)}</td>
+                          <td className="py-2 text-right tabular-nums text-gray-800">{fmt(now)}</td>
+                          <td className={`py-2 text-right tabular-nums font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {delta >= 0 ? '+' : '−'}{fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
