@@ -14,7 +14,7 @@ import type { Transaction } from '../../types';
 import type { PortfolioData, PortfolioSnapshot } from '../../hooks/usePortfolio';
 
 const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
-const INCOME_CAT = 'Family';
+const INCOME_CATS = ['Family', 'Salary'];
 const TOP_CATS = ['Shopping', 'Food & Dining', 'Healthcare', 'Utilities', 'Cash'];
 const CAT_COLORS: Record<string, string> = {
   Shopping:        '#ec4899',
@@ -77,7 +77,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
       });
     }
     const m = map.get(month)!;
-    if (t.type === 'income' && t.category === INCOME_CAT) m.income += t.amount;
+    if (t.type === 'income' && INCOME_CATS.includes(t.category)) m.income += t.amount;
     if (t.type === 'expense' && !EXCLUDE.includes(t.category)) {
       m.expense += t.amount;
       m.byCategory[t.category] = (m.byCategory[t.category] ?? 0) + t.amount;
@@ -94,7 +94,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
 function computeInsights(months: MonthStats[], totalCats: Record<string, number>): Insight[] {
   const insights: Insight[] = [];
   const avgExpense = months.reduce((s, m) => s + m.expense, 0) / months.length;
-  const normalMonths = months.filter(m => m.income < 7_000_000);
+  const normalMonths = months.filter(m => m.income < 20_000_000);
   const avgNormalIncome = normalMonths.length
     ? normalMonths.reduce((s, m) => s + m.income, 0) / normalMonths.length : avgExpense;
 
@@ -138,8 +138,8 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
     type: totalNet >= 0 ? 'positive' : 'warning',
     title: `4-month net: ${totalNet >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(totalNet)))}`,
     body: totalNet < 0
-      ? `Total outflows exceeded family income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
-      : `Family income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
+      ? `Total outflows exceeded income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
+      : `Income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
   });
   return insights;
 }
@@ -417,7 +417,7 @@ export function AnalysisPage() {
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family transfers only' },
+          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family + Salary' },
           { label: 'Avg Monthly Expense', value: avgExpense, color: 'text-red-500', note: 'Variable spending' },
           { label: '4-Month Net', value: totalNet, color: totalNet >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'Income − expense' },
           { label: 'Monthly Gap', value: avgIncome - avgExpense, color: (avgIncome - avgExpense) >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'avg income − avg expense' },
