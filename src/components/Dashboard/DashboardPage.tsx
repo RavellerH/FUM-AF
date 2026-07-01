@@ -24,7 +24,7 @@ function fmt(v: number) {
 
 function computeStats(txns: Transaction[]) {
   const income = txns
-    .filter(t => t.type === 'income' && t.category === 'Family')
+    .filter(t => t.type === 'income' && ['Family', 'Salary'].includes(t.category))
     .reduce((s, t) => s + t.amount, 0);
 
   const rent = txns
@@ -132,7 +132,7 @@ export function DashboardPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Income</p>
               <p className="mt-1 text-xl font-bold text-green-600 sm:text-2xl">{fmt(stats.income)}</p>
-              <p className="mt-1 text-xs text-gray-400">Family transfers</p>
+              <p className="mt-1 text-xs text-gray-400">Family + Salary</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
               <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Fixed Costs</p>
