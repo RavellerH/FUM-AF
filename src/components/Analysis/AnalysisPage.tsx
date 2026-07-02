@@ -48,6 +48,8 @@ interface MonthStats {
   rent: number;
   insurance: number;
   uncategorized: number;
+  cashIn: number;
+  reimbursable: number;
 }
 
 interface Insight {
@@ -74,9 +76,11 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
         label: d.toLocaleString('id-ID', { month: 'short' }),
         month, income: 0, expense: 0, net: 0, byCategory: {},
         investment: 0, rent: 0, insurance: 0, uncategorized: 0,
+        cashIn: 0, reimbursable: 0,
       });
     }
     const m = map.get(month)!;
+    if (t.type === 'income') m.cashIn += t.amount;
     if (t.type === 'income' && INCOME_CATS.includes(t.category)) m.income += t.amount;
     if (t.type === 'expense' && !EXCLUDE.includes(t.category)) {
       m.expense += t.amount;
@@ -85,6 +89,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
     if (t.type === 'expense' && t.category === 'Investment') m.investment += t.amount;
     if (t.type === 'expense' && t.category === 'Housing') m.rent += t.amount;
     if (t.type === 'expense' && t.category === 'Insurance') m.insurance += t.amount;
+    if (t.type === 'expense' && t.category === 'Reimbursable') m.reimbursable += t.amount;
     if (t.category === 'Uncategorized') m.uncategorized += 1;
   }
   for (const m of map.values()) m.net = m.income - m.expense;
@@ -442,6 +447,70 @@ export function AnalysisPage() {
             <p className="mt-0.5 text-xs text-gray-400">{note}</p>
           </div>
         ))}
+      </div>
+
+      {/* Cash Flow Reality */}
+      <div className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50 p-5">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="font-semibold text-indigo-900">Cash Flow Reality</h2>
+          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600">full liquidity view</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-indigo-200 text-xs text-indigo-500 uppercase tracking-wide">
+                <th className="pb-2 text-left font-medium">Month</th>
+                {months.map(m => <th key={m.month} className="pb-2 text-right font-medium">{m.label}</th>)}
+                <th className="pb-2 text-right font-medium">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-indigo-100">
+              {[
+                { label: 'Cash In (all sources)', key: 'cashIn' as const, color: 'text-emerald-700' },
+                { label: 'Variable Spending', key: 'expense' as const, color: 'text-gray-700', neg: true },
+                { label: 'Investment', key: 'investment' as const, color: 'text-blue-600', neg: true },
+                { label: 'Reimbursable (fronted)', key: 'reimbursable' as const, color: 'text-amber-600', neg: true },
+              ].map(({ label, key, color, neg }) => (
+                <tr key={key}>
+                  <td className={`py-1.5 text-xs font-medium ${color}`}>{label}</td>
+                  {months.map(m => (
+                    <td key={m.month} className={`py-1.5 text-right tabular-nums text-xs ${color}`}>
+                      {m[key] ? `${neg ? '−' : '+'}${fmt(m[key])}` : '—'}
+                    </td>
+                  ))}
+                  <td className={`py-1.5 text-right tabular-nums text-xs font-semibold ${color}`}>
+                    {(() => {
+                      const total = months.reduce((s, m) => s + m[key], 0);
+                      return total ? `${neg ? '−' : '+'}${fmt(total)}` : '—';
+                    })()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-indigo-300">
+                <td className="pt-2 text-xs font-bold text-indigo-900">Net Cash Change</td>
+                {months.map(m => {
+                  const net = m.cashIn - m.expense - m.investment - m.reimbursable;
+                  return (
+                    <td key={m.month} className={`pt-2 text-right tabular-nums text-xs font-bold ${net >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                      {net >= 0 ? '+' : '−'}{fmt(Math.abs(net))}
+                    </td>
+                  );
+                })}
+                {(() => {
+                  const total = months.reduce((s, m) => s + m.cashIn - m.expense - m.investment - m.reimbursable, 0);
+                  return (
+                    <td className={`pt-2 text-right tabular-nums text-xs font-bold ${total >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                      {total >= 0 ? '+' : '−'}{fmt(Math.abs(total))}
+                    </td>
+                  );
+                })()}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-indigo-500">Cash In = all income (salary + family + reimbursements + transfers). Reimbursable = money fronted for others, expected back.</p>
       </div>
 
       {/* Charts row 1 */}
