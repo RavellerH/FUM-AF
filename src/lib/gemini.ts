@@ -55,13 +55,16 @@ Rules:
    - date: string (ISO 8601, YYYY-MM-DD)
    - amount: number (always positive)
    - type: "income" | "expense"
-   - category: string (best-guess from: Food & Dining, Transport, Utilities, Housing, Healthcare, Entertainment, Shopping, Income, Uncategorized)
+   - category: string (best-guess from: Food & Dining, Transport, Utilities, Housing, Healthcare, Insurance, Household, Entertainment, Shopping, Admin Fee, Income, Uncategorized)
    - description: string (merchant name or memo, max 100 chars)
    - currency: string (3-letter ISO code, default "IDR" if unknown or Indonesian data)
 3. Ignore header rows, balance rows, and summary rows.
 4. For credit card statements: purchases are "expense", payments/refunds are "income".
 5. Infer type from amount sign if present: negative = expense, positive = income. Then normalize amount to positive.
 6. If a date is ambiguous (MM/DD vs DD/MM), prefer DD/MM/YYYY for Indonesian banks.
+7. Minimarkets/convenience stores (Alfamart, Alfagift, Indomaret, Yomart) and supermarkets/grocery stores are "Household", not "Shopping" — regardless of amount.
+8. Small bank-charged fees (e.g. "Biaya transaksi bank", "Biaya admin", virtual-account/top-up admin fees) are "Admin Fee", not the category of the payment they're attached to.
+9. BPJS and other health/life insurance premium payments are "Insurance", not "Healthcare".
 
 Raw data:
 ${rawText}

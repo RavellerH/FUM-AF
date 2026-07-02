@@ -8,10 +8,12 @@ interface Props {
   month: string;
   income: number;
   expense: number;
+  net?: number;
 }
 
-export function IncomeExpenseBar({ month, income, expense }: Props) {
+export function IncomeExpenseBar({ month, income, expense, net }: Props) {
   const data = [{ name: month, Income: income, Expense: expense }];
+  const netValue = net ?? income - expense;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -30,8 +32,8 @@ export function IncomeExpenseBar({ month, income, expense }: Props) {
       <div className="mt-4 flex gap-6 text-sm">
         <div>
           <span className="text-gray-500">Net</span>
-          <span className={`ml-2 font-semibold ${income - expense >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {(income - expense).toLocaleString('id-ID')}
+          <span className={`ml-2 font-semibold ${netValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {netValue.toLocaleString('id-ID')}
           </span>
         </div>
       </div>

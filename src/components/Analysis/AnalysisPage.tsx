@@ -11,10 +11,10 @@ import {
   AreaChart, Area,
 } from 'recharts';
 import type { Transaction } from '../../types';
-import type { PortfolioData } from '../../hooks/usePortfolio';
+import type { PortfolioData, PortfolioSnapshot } from '../../hooks/usePortfolio';
 
 const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
-const INCOME_CAT = 'Family';
+const INCOME_CATS = ['Family', 'Salary'];
 const TOP_CATS = ['Shopping', 'Food & Dining', 'Healthcare', 'Utilities', 'Cash'];
 const CAT_COLORS: Record<string, string> = {
   Shopping:        '#ec4899',
@@ -25,7 +25,7 @@ const CAT_COLORS: Record<string, string> = {
   Other:           '#cbd5e1',
 };
 const DONUT_COLORS = ['#ec4899','#f59e0b','#f43f5e','#06b6d4','#94a3b8','#6366f1','#10b981','#8b5cf6'];
-const ALLOC_COLORS = { Stocks: '#3b82f6', BTC: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
+const ALLOC_COLORS = { Stocks: '#3b82f6', Crypto: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
 const SECTOR_COLORS = ['#3b82f6','#6366f1','#10b981','#f59e0b','#f43f5e'];
 
 function fmt(v: number) { return Math.round(v).toLocaleString('id-ID'); }
@@ -35,6 +35,7 @@ function fmtK(v: number) {
   return v.toString();
 }
 function pct(v: number, total: number) { return ((v / total) * 100).toFixed(1); }
+function allocPct(v: number, total: number) { return total ? Math.round((v / total) * 1000) / 10 : 0; }
 
 interface MonthStats {
   label: string;
@@ -76,7 +77,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
       });
     }
     const m = map.get(month)!;
-    if (t.type === 'income' && t.category === INCOME_CAT) m.income += t.amount;
+    if (t.type === 'income' && INCOME_CATS.includes(t.category)) m.income += t.amount;
     if (t.type === 'expense' && !EXCLUDE.includes(t.category)) {
       m.expense += t.amount;
       m.byCategory[t.category] = (m.byCategory[t.category] ?? 0) + t.amount;
@@ -93,7 +94,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
 function computeInsights(months: MonthStats[], totalCats: Record<string, number>): Insight[] {
   const insights: Insight[] = [];
   const avgExpense = months.reduce((s, m) => s + m.expense, 0) / months.length;
-  const normalMonths = months.filter(m => m.income < 7_000_000);
+  const normalMonths = months.filter(m => m.income < 20_000_000);
   const avgNormalIncome = normalMonths.length
     ? normalMonths.reduce((s, m) => s + m.income, 0) / normalMonths.length : avgExpense;
 
@@ -137,8 +138,8 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
     type: totalNet >= 0 ? 'positive' : 'warning',
     title: `4-month net: ${totalNet >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(totalNet)))}`,
     body: totalNet < 0
-      ? `Total outflows exceeded family income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
-      : `Family income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
+      ? `Total outflows exceeded income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
+      : `Income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
   });
   return insights;
 }
@@ -156,13 +157,13 @@ function computeInvestmentInsights(
   insights.push({
     type: cryptoPct > 40 ? 'warning' : 'info',
     title: `Crypto allocation: ${cryptoPct.toFixed(1)}% of portfolio`,
-    body: `BTC ${pct(nw.btc, nw.total)}% (store of value) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
+    body: `Crypto investing ${pct(nw.btc, nw.total)}% (${[...new Set(p.crypto_investing.map(c => c.symbol))].join(' + ')}) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
   });
 
   insights.push({
     type: 'info',
     title: `Banking concentration: ${bankPct}% of stock portfolio`,
-    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining) and SINI add some commodity exposure.`,
+    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining), SINI (industrial), and SSIA (property/construction) add some diversification.`,
   });
 
   if (p.stocks_pnl_pct < -10) {
@@ -180,10 +181,13 @@ function computeInvestmentInsights(
   });
 
   if (p.crypto_investing.length > 1) {
+    const symbols = [...new Set(p.crypto_investing.map(c => c.symbol))];
     insights.push({
       type: 'info',
-      title: 'BTC split across 2 exchanges',
-      body: `${p.crypto_investing.map(c => `${c.platform}: ${c.amount.toFixed(8)} BTC`).join(' · ')}. Consider consolidating to reduce exchange counterparty risk.`,
+      title: symbols.length > 1
+        ? 'Crypto investing split across exchanges'
+        : `${symbols[0]} split across ${p.crypto_investing.length} exchanges`,
+      body: `${p.crypto_investing.map(c => `${c.platform}: ${c.amount.toFixed(8)} ${c.symbol}`).join(' · ')}. Consider consolidating to reduce exchange counterparty risk.`,
     });
   }
 
@@ -198,7 +202,8 @@ function computeInvestmentInsights(
 
 export function AnalysisPage() {
   const { session } = useAuth();
-  const { portfolio, fetchPortfolio } = usePortfolio();
+  const { portfolio, fetchPortfolio, fetchPreviousSnapshot } = usePortfolio();
+  const [prevSnapshot, setPrevSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [usdIdr, setUsdIdr] = useState<number>(16500);
@@ -235,6 +240,7 @@ export function AnalysisPage() {
     setTxns(txnData);
     setUsdIdr(rate);
     fetchPortfolio();
+    fetchPreviousSnapshot().then(setPrevSnapshot).catch(() => setPrevSnapshot(null));
     setLastRefresh(new Date());
     setLoading(false);
     refreshInsights(txnData);
@@ -266,6 +272,18 @@ export function AnalysisPage() {
   const totalInvestment = useMemo(() => months.reduce((s, m) => s + m.investment, 0), [months]);
   const totalFixedCosts = useMemo(() => months.reduce((s, m) => s + m.rent + m.insurance, 0), [months]);
 
+  const reimbursableData = useMemo(() => {
+    const paid = txns
+      .filter(t => t.type === 'expense' && t.category === 'Reimbursable')
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const received = txns
+      .filter(t => t.type === 'income' && t.category === 'Reimbursement')
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const totalPaid = paid.reduce((s, t) => s + t.amount, 0);
+    const totalReceived = received.reduce((s, t) => s + t.amount, 0);
+    return { paid, received, totalPaid, totalReceived, outstanding: totalPaid - totalReceived };
+  }, [txns]);
+
   // Net worth
   const netWorth = useMemo(() => {
     if (!portfolio) return null;
@@ -281,9 +299,64 @@ export function AnalysisPage() {
     return computeInvestmentInsights(portfolio, netWorth);
   }, [portfolio, netWorth]);
 
+  // Net worth at the previous snapshot, for "vs last time" comparisons.
+  const prevNetWorth = useMemo(() => {
+    if (!prevSnapshot) return null;
+    const p = prevSnapshot.data;
+    const stocks = p.stocks.reduce((s, h) => s + h.value_idr, 0);
+    const btc = p.crypto_investing.reduce((s, c) => s + c.value_idr, 0);
+    const hl = p.crypto_trading.total_equity_usd * usdIdr;
+    const savings = p.savings.reduce((s, sv) => s + sv.value_idr, 0);
+    return { stocks, btc, hl, savings, total: stocks + btc + hl + savings };
+  }, [prevSnapshot, usdIdr]);
+
+  // Per-holding before/after deltas, matched by symbol (stocks), platform (crypto), name (savings).
+  const holdingDeltas = useMemo(() => {
+    if (!portfolio || !prevSnapshot || !netWorth || !prevNetWorth) return [];
+    const prev = prevSnapshot.data;
+    const rows: { group: string; label: string; before: number; now: number; nowExtra?: string }[] = [];
+
+    const stockSymbols = new Set([...prev.stocks.map(s => s.symbol), ...portfolio.stocks.map(s => s.symbol)]);
+    for (const sym of stockSymbols) {
+      rows.push({
+        group: 'Stocks',
+        label: sym,
+        before: prev.stocks.find(s => s.symbol === sym)?.value_idr ?? 0,
+        now: portfolio.stocks.find(s => s.symbol === sym)?.value_idr ?? 0,
+      });
+    }
+
+    const platforms = new Set([...prev.crypto_investing.map(c => c.platform), ...portfolio.crypto_investing.map(c => c.platform)]);
+    for (const plat of platforms) {
+      const before = prev.crypto_investing.find(c => c.platform === plat);
+      const now = portfolio.crypto_investing.find(c => c.platform === plat);
+      rows.push({
+        group: 'Crypto',
+        label: plat,
+        before: before?.value_idr ?? 0,
+        now: now?.value_idr ?? 0,
+        nowExtra: now ? `${now.amount.toFixed(8)} ${now.symbol}` : undefined,
+      });
+    }
+
+    rows.push({ group: 'Crypto', label: portfolio.crypto_trading.platform, before: prevNetWorth.hl, now: netWorth.hl });
+
+    const savingsNames = new Set([...prev.savings.map(s => s.name), ...portfolio.savings.map(s => s.name)]);
+    for (const name of savingsNames) {
+      rows.push({
+        group: 'Savings',
+        label: name,
+        before: prev.savings.find(s => s.name === name)?.value_idr ?? 0,
+        now: portfolio.savings.find(s => s.name === name)?.value_idr ?? 0,
+      });
+    }
+
+    return rows;
+  }, [portfolio, prevSnapshot, netWorth, prevNetWorth]);
+
   const allocData = netWorth ? [
     { name: 'Stocks', value: netWorth.stocks },
-    { name: 'BTC', value: netWorth.btc },
+    { name: 'Crypto', value: netWorth.btc },
     { name: 'Hyperliquid', value: netWorth.hl },
     { name: 'Savings', value: netWorth.savings },
   ] : [];
@@ -325,7 +398,7 @@ export function AnalysisPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Financial Analysis</h1>
           <p className="text-xs text-gray-400 mt-0.5">
@@ -345,7 +418,7 @@ export function AnalysisPage() {
 
       {totalUncategorized > 0 && (
         <a
-          href="#/transactions"
+          href="#/transactions?category=Uncategorized"
           className="mb-6 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
         >
           <span>⚠️ {totalUncategorized} uncategorized transaction{totalUncategorized > 1 ? 's' : ''} across this period</span>
@@ -356,7 +429,7 @@ export function AnalysisPage() {
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family transfers only' },
+          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family + Salary' },
           { label: 'Avg Monthly Expense', value: avgExpense, color: 'text-red-500', note: 'Variable spending' },
           { label: '4-Month Net', value: totalNet, color: totalNet >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'Income − expense' },
           { label: 'Monthly Gap', value: avgIncome - avgExpense, color: (avgIncome - avgExpense) >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'avg income − avg expense' },
@@ -521,6 +594,73 @@ export function AnalysisPage() {
         </div>
       </div>
 
+      {/* Reimbursable Tracker */}
+      {(reimbursableData.paid.length > 0 || reimbursableData.received.length > 0) && (
+        <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-800">Reimbursable Tracker</h2>
+            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${
+              reimbursableData.outstanding > 0
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {reimbursableData.outstanding > 0 ? `${fmt(reimbursableData.outstanding)} outstanding` : 'Fully settled'}
+            </span>
+          </div>
+
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            {[
+              { label: 'Total Paid Out', value: reimbursableData.totalPaid, color: 'text-red-500' },
+              { label: 'Total Received Back', value: reimbursableData.totalReceived, color: 'text-emerald-600' },
+              { label: 'Still Outstanding', value: reimbursableData.outstanding, color: reimbursableData.outstanding > 0 ? 'text-amber-600' : 'text-emerald-600' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="rounded-lg bg-gray-50 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+                <p className={`mt-1 text-lg font-bold tabular-nums ${color}`}>{fmt(value)}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">Paid Out (Reimbursable)</p>
+              <div className="space-y-1.5">
+                {reimbursableData.paid.map(t => (
+                  <div key={t.id} className="flex items-start justify-between gap-2 rounded-lg border border-red-50 bg-red-50 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-gray-700">{t.description}</p>
+                      <p className="text-xs text-gray-400">{t.date}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-red-600">−{fmt(t.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-600">Received Back (Reimbursement)</p>
+              <div className="space-y-1.5">
+                {reimbursableData.received.map(t => (
+                  <div key={t.id} className="flex items-start justify-between gap-2 rounded-lg border border-emerald-50 bg-emerald-50 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-gray-700">{t.description}</p>
+                      <p className="text-xs text-gray-400">{t.date}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-emerald-600">+{fmt(t.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {reimbursableData.outstanding > 0 && (
+            <p className="mt-3 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+              ⚠️ {fmt(reimbursableData.outstanding)} paid for others is still owed back to you — this directly reduces your available cash.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Net worth + Insights */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
@@ -532,20 +672,20 @@ export function AnalysisPage() {
             <div className="space-y-2">
               {[
                 { label: 'Stocks (StockBit)', value: netWorth.stocks, note: `${portfolio!.stocks_pnl_pct}% unrealized`, color: 'bg-blue-500' },
-                { label: 'BTC (Indodax + FLOQ)', value: netWorth.btc, note: 'Crypto investing', color: 'bg-orange-400' },
+                { label: 'Crypto (Indodax + FLOQ)', value: netWorth.btc, note: 'Crypto investing', color: 'bg-orange-400' },
                 { label: 'Hyperliquid', value: netWorth.hl, note: `$${portfolio!.crypto_trading.total_equity_usd} @ ${fmt(usdIdr)}`, color: 'bg-purple-400' },
                 { label: 'Deviota Savings', value: netWorth.savings, note: 'Liquid savings', color: 'bg-emerald-400' },
               ].map(({ label, value, note, color }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className={`h-2 w-2 rounded-full flex-shrink-0 ${color}`} />
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
+                  <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <span className="text-sm text-gray-700">{label}</span>
-                      <span className="ml-2 text-xs text-gray-400">{note}</span>
+                      <span className="ml-2 hidden text-xs text-gray-400 sm:inline">{note}</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-800 tabular-nums">{fmt(Math.round(value))}</span>
+                    <span className="shrink-0 text-sm font-semibold text-gray-800 tabular-nums">{fmt(Math.round(value))}</span>
                   </div>
-                  <div className="w-24 h-1.5 rounded-full bg-gray-100">
+                  <div className="hidden h-1.5 w-24 shrink-0 rounded-full bg-gray-100 sm:block">
                     <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${(value / netWorth.total) * 100}%` }} />
                   </div>
                 </div>
@@ -642,7 +782,25 @@ export function AnalysisPage() {
             {/* Stock sector breakdown */}
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <h3 className="mb-4 font-semibold text-gray-800">Stock Sector Mix</h3>
-              <div className="space-y-3">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={sectorData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={75}
+                    label={({ name, value }) => `${name} ${value}%`}
+                    labelLine={false}
+                  >
+                    {sectorData.map((_, i) => <Cell key={i} fill={SECTOR_COLORS[i % SECTOR_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => `${v}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-2 space-y-3">
                 {sectorData.map(({ name, value }, i) => (
                   <div key={name} className="flex items-center gap-3">
                     <span className="w-28 shrink-0 text-sm text-gray-600">{name}</span>
@@ -694,7 +852,7 @@ export function AnalysisPage() {
                   ))}
                   {portfolio.crypto_investing.map(c => (
                     <tr key={c.platform} className="hover:bg-gray-50">
-                      <td className="py-2 font-medium text-gray-800">BTC · {c.platform}</td>
+                      <td className="py-2 font-medium text-gray-800">{c.symbol} · {c.platform}</td>
                       <td className="py-2 text-right tabular-nums text-gray-600">{fmt(c.value_idr)}</td>
                       <td className="py-2 text-right tabular-nums text-gray-500">{pct(c.value_idr, netWorth.total)}%</td>
                       <td className="py-2 text-right">
@@ -764,6 +922,120 @@ export function AnalysisPage() {
               </div>
             </div>
           </div>
+
+          {/* Portfolio Changes vs last snapshot */}
+          {prevSnapshot && prevNetWorth && (
+            <>
+              <div className="mt-8 mb-4">
+                <h2 className="text-lg font-bold text-gray-900">Portfolio Changes</h2>
+                <p className="text-xs text-gray-400">
+                  vs snapshot from {new Date(prevSnapshot.snapshot_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+
+              {/* Delta KPIs */}
+              <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: 'Net Worth', now: netWorth.total, before: prevNetWorth.total },
+                  { label: 'Stocks', now: netWorth.stocks, before: prevNetWorth.stocks },
+                  { label: 'Crypto Investing', now: netWorth.btc, before: prevNetWorth.btc },
+                  { label: 'Hyperliquid', now: netWorth.hl, before: prevNetWorth.hl },
+                ].map(({ label, now, before }) => {
+                  const delta = now - before;
+                  const deltaPct = before !== 0 ? (delta / before) * 100 : 0;
+                  return (
+                    <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+                      <p className="mt-1 text-lg font-bold text-gray-900">{fmt(now)}</p>
+                      <p className={`mt-0.5 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {delta >= 0 ? '▲' : '▼'} {fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Net worth trend */}
+                <div className="rounded-xl border border-gray-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-gray-800">Net Worth Trend</h3>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart
+                      data={[
+                        { name: 'Last', value: prevNetWorth.total },
+                        { name: 'Now', value: netWorth.total },
+                      ]}
+                      margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v) => fmt(v as number)} />
+                      <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} fill="#6366f1" fillOpacity={0.15} dot={{ r: 4 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Allocation shift */}
+                <div className="rounded-xl border border-gray-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-gray-800">Capital Allocation Shift</h3>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <ComposedChart
+                      data={[
+                        { name: 'Stocks', Last: allocPct(prevNetWorth.stocks, prevNetWorth.total), Now: allocPct(netWorth.stocks, netWorth.total) },
+                        { name: 'Crypto', Last: allocPct(prevNetWorth.btc, prevNetWorth.total), Now: allocPct(netWorth.btc, netWorth.total) },
+                        { name: 'Hyperliquid', Last: allocPct(prevNetWorth.hl, prevNetWorth.total), Now: allocPct(netWorth.hl, netWorth.total) },
+                        { name: 'Savings', Last: allocPct(prevNetWorth.savings, prevNetWorth.total), Now: allocPct(netWorth.savings, netWorth.total) },
+                      ]}
+                      margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(v) => `${v}%`} />
+                      <Legend iconType="circle" iconSize={8} />
+                      <Bar dataKey="Last" fill="#cbd5e1" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Now" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Holding-by-holding delta table */}
+              <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
+                <h3 className="mb-4 font-semibold text-gray-800">Holding-by-Holding Change</h3>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                      <th className="pb-2 text-left font-medium">Asset</th>
+                      <th className="pb-2 text-right font-medium">Last</th>
+                      <th className="pb-2 text-right font-medium">Now</th>
+                      <th className="pb-2 text-right font-medium">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {holdingDeltas.map(({ group, label, before, now, nowExtra }) => {
+                      const delta = now - before;
+                      const deltaPct = before !== 0 ? (delta / before) * 100 : (now !== 0 ? 100 : 0);
+                      return (
+                        <tr key={`${group}-${label}`} className="hover:bg-gray-50">
+                          <td className="py-2 font-medium text-gray-800">
+                            {group} · {label}
+                            {nowExtra && <span className="ml-1.5 text-xs text-gray-400">({nowExtra})</span>}
+                          </td>
+                          <td className="py-2 text-right tabular-nums text-gray-500">{fmt(before)}</td>
+                          <td className="py-2 text-right tabular-nums text-gray-800">{fmt(now)}</td>
+                          <td className={`py-2 text-right tabular-nums font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {delta >= 0 ? '+' : '−'}{fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

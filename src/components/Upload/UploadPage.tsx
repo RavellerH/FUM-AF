@@ -128,7 +128,7 @@ export function UploadPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
           <p className="mb-1 text-sm font-semibold text-amber-900">File is password-protected</p>
           <p className="mb-4 text-xs text-amber-700">{file.name}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="password"
               value={password}
@@ -138,15 +138,17 @@ export function UploadPage() {
               autoFocus
               className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
-            <button
-              onClick={handlePasswordSubmit}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Unlock
-            </button>
-            <button onClick={reset} className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">
-              Cancel
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePasswordSubmit}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 sm:flex-none"
+              >
+                Unlock
+              </button>
+              <button onClick={reset} className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 sm:flex-none">
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -174,7 +176,7 @@ export function UploadPage() {
           {step === 'confirming' && <ParsedPreviewTable transactions={parsed} />}
 
           {(step === 'previewing' || step === 'confirming') && (
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button onClick={reset} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                 Cancel
               </button>
