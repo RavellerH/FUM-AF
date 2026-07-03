@@ -6,13 +6,15 @@ import { useAuth } from '../../hooks/useAuth';
 
 export function RulesManager() {
   const { session } = useAuth();
-  const { rules, loading, fetchRules, addRule, deleteRule } = useRules();
+  const { rules, loading, fetchRules, addRule, deleteRule, applyRulesToUncategorized } = useRules();
   const { categories, fetchCategories } = useCategories();
 
   const [newPattern, setNewPattern] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [newType, setNewType] = useState<TransactionType | ''>('');
   const [saving, setSaving] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [applyResult, setApplyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,25 +41,55 @@ export function RulesManager() {
     }
   };
 
+  const handleApplyToExisting = async () => {
+    setApplying(true);
+    setApplyResult(null);
+    setError(null);
+    try {
+      const n = await applyRulesToUncategorized();
+      setApplyResult(n > 0
+        ? `Updated ${n} uncategorized transaction${n > 1 ? 's' : ''}.`
+        : 'No uncategorized transactions matched any rule.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to apply rules');
+    } finally {
+      setApplying(false);
+    }
+  };
+
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Auto-categorization Rules</h2>
-        <p className="mt-1 text-xs text-gray-500">
-          Rules are applied after Gemini parsing. If a description contains the pattern,
-          the category (and optionally type) is overridden automatically.
-        </p>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="text-base font-semibold text-slate-900">Auto-categorization Rules</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Rules are applied after Gemini parsing. If a description contains the pattern,
+            the category (and optionally type) is overridden automatically.
+          </p>
+        </div>
+        {rules.length > 0 && (
+          <button
+            onClick={handleApplyToExisting}
+            disabled={applying}
+            className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50"
+          >
+            {applying ? 'Applying…' : 'Apply to existing uncategorized'}
+          </button>
+        )}
       </div>
+      {applyResult && (
+        <p className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{applyResult}</p>
+      )}
 
       {/* Existing rules */}
       {loading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <p className="text-sm text-slate-400">Loading…</p>
       ) : rules.length === 0 ? (
-        <p className="mb-4 text-sm text-gray-400">No rules yet. Create one below.</p>
+        <p className="mb-4 text-sm text-slate-400">No rules yet. Create one below.</p>
       ) : (
-        <div className="mb-4 overflow-hidden rounded-lg border border-gray-200">
+        <div className="mb-4 overflow-hidden rounded-lg border border-slate-200">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">Pattern</th>
                 <th className="px-3 py-2 text-left font-medium">→ Category</th>
@@ -67,14 +99,14 @@ export function RulesManager() {
             </thead>
             <tbody>
               {rules.map(r => (
-                <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-3 py-2 font-mono text-xs text-gray-700">{r.pattern}</td>
-                  <td className="px-3 py-2 text-gray-700">{r.category}</td>
-                  <td className="px-3 py-2 text-gray-400">{r.type ?? '—'}</td>
+                <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50">
+                  <td className="px-3 py-2 font-mono text-xs text-slate-700">{r.pattern}</td>
+                  <td className="px-3 py-2 text-slate-700">{r.category}</td>
+                  <td className="px-3 py-2 text-slate-400">{r.type ?? '—'}</td>
                   <td className="px-3 py-2 text-right">
                     <button
                       onClick={() => deleteRule(r.id)}
-                      className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
+                      className="rounded p-1 text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-colors"
                       title="Delete rule"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,8 +122,8 @@ export function RulesManager() {
       )}
 
       {/* Add new rule */}
-      <div className="rounded-lg border border-dashed border-gray-300 p-3">
-        <p className="mb-2 text-xs font-medium text-gray-600">Add rule</p>
+      <div className="rounded-lg border border-dashed border-slate-300 p-3">
+        <p className="mb-2 text-xs font-medium text-slate-600">Add rule</p>
         <div className="flex flex-wrap gap-2">
           <input
             type="text"
@@ -99,12 +131,12 @@ export function RulesManager() {
             value={newPattern}
             onChange={e => setNewPattern(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            className="flex-1 min-w-0 rounded border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="flex-1 min-w-0 rounded border border-slate-300 px-2.5 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
           />
           <select
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
           >
             <option value="">— category —</option>
             {categoryNames.map(c => <option key={c} value={c}>{c}</option>)}
@@ -112,7 +144,7 @@ export function RulesManager() {
           <select
             value={newType}
             onChange={e => setNewType(e.target.value as TransactionType | '')}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
           >
             <option value="">any type</option>
             <option value="income">income</option>
@@ -121,12 +153,12 @@ export function RulesManager() {
           <button
             onClick={handleAdd}
             disabled={saving || !newPattern.trim() || !newCategory}
-            className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40"
+            className="rounded bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-40"
           >
             {saving ? 'Saving…' : 'Add'}
           </button>
         </div>
-        {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-2 text-xs text-rose-500">{error}</p>}
       </div>
     </div>
   );

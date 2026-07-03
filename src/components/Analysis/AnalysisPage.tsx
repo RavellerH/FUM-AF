@@ -12,9 +12,10 @@ import {
 } from 'recharts';
 import type { Transaction } from '../../types';
 import type { PortfolioData, PortfolioSnapshot } from '../../hooks/usePortfolio';
+import { EXCLUDE_FROM_EXPENSE as EXCLUDE, INCOME_CATEGORIES as INCOME_CATS, UNCATEGORIZED } from '../../lib/constants';
+import { fmt, fmtCompact as fmtK } from '../../lib/format';
+import { fetchUsdIdr, FALLBACK_USD_IDR } from '../../lib/fx';
 
-const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
-const INCOME_CATS = ['Family', 'Salary'];
 const TOP_CATS = ['Shopping', 'Food & Dining', 'Healthcare', 'Utilities', 'Cash'];
 const CAT_COLORS: Record<string, string> = {
   Shopping:        '#ec4899',
@@ -28,12 +29,6 @@ const DONUT_COLORS = ['#ec4899','#f59e0b','#f43f5e','#06b6d4','#94a3b8','#6366f1
 const ALLOC_COLORS = { Stocks: '#3b82f6', Crypto: '#f97316', Hyperliquid: '#a855f7', Savings: '#10b981' };
 const SECTOR_COLORS = ['#3b82f6','#6366f1','#10b981','#f59e0b','#f43f5e'];
 
-function fmt(v: number) { return Math.round(v).toLocaleString('id-ID'); }
-function fmtK(v: number) {
-  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(v) >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
-  return v.toString();
-}
 function pct(v: number, total: number) { return ((v / total) * 100).toFixed(1); }
 function allocPct(v: number, total: number) { return total ? Math.round((v / total) * 1000) / 10 : 0; }
 
@@ -54,14 +49,6 @@ interface Insight {
   type: 'warning' | 'positive' | 'info';
   title: string;
   body: string;
-}
-
-async function fetchUsdIdr(): Promise<number> {
-  try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    const j = await res.json();
-    return j.rates.IDR as number;
-  } catch { return 16500; }
 }
 
 function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
@@ -85,7 +72,7 @@ function buildMonthlyStats(txns: Transaction[]): MonthStats[] {
     if (t.type === 'expense' && t.category === 'Investment') m.investment += t.amount;
     if (t.type === 'expense' && t.category === 'Housing') m.rent += t.amount;
     if (t.type === 'expense' && t.category === 'Insurance') m.insurance += t.amount;
-    if (t.category === 'Uncategorized') m.uncategorized += 1;
+    if (t.category === UNCATEGORIZED) m.uncategorized += 1;
   }
   for (const m of map.values()) m.net = m.income - m.expense;
   return [...map.values()].sort((a, b) => a.month.localeCompare(b.month));
@@ -122,7 +109,7 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
     insights.push({
       type: 'positive',
       title: `${surplusMonths.length} surplus month${surplusMonths.length > 1 ? 's' : ''} built +${fmt(Math.round(totalSurplus))} buffer`,
-      body: surplusMonths.map(m => `${m.label}: +${fmt(m.net)}`).join(' · ') + ' (THR + extra income)',
+      body: surplusMonths.map(m => `${m.label}: +${fmt(m.net)}`).join(' · '),
     });
   }
   const cashTotal = totalCats['Cash'] ?? 0;
@@ -134,12 +121,13 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
     });
   }
   const totalNet = months.reduce((s, m) => s + m.net, 0);
+  const since = months.length ? `${months[0].label} ${months[0].month.slice(0, 4)}` : '';
   insights.push({
     type: totalNet >= 0 ? 'positive' : 'warning',
-    title: `4-month net: ${totalNet >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(totalNet)))}`,
+    title: `${months.length}-month net: ${totalNet >= 0 ? '+' : '−'}${fmt(Math.abs(Math.round(totalNet)))}`,
     body: totalNet < 0
-      ? `Total outflows exceeded income by ${fmt(Math.abs(Math.round(totalNet)))} since January. Covered by THR and Deviota savings.`
-      : `Income exceeded variable spending by ${fmt(Math.round(totalNet))} since January.`,
+      ? `Total outflows exceeded income by ${fmt(Math.abs(Math.round(totalNet)))} since ${since} — covered by savings and one-off income.`
+      : `Income exceeded variable spending by ${fmt(Math.round(totalNet))} since ${since}.`,
   });
   return insights;
 }
@@ -147,12 +135,12 @@ function computeInsights(months: MonthStats[], totalCats: Record<string, number>
 function computeInvestmentInsights(
   p: PortfolioData,
   nw: { stocks: number; btc: number; hl: number; savings: number; total: number },
+  avgMonthlyExpense: number,
 ): Insight[] {
   const insights: Insight[] = [];
   const cryptoTotal = nw.btc + nw.hl;
   const cryptoPct = (cryptoTotal / nw.total) * 100;
   const savingsPct = (nw.savings / nw.total) * 100;
-  const bankPct = p.stocks_sectors['Bank'] ?? 0;
 
   insights.push({
     type: cryptoPct > 40 ? 'warning' : 'info',
@@ -160,24 +148,37 @@ function computeInvestmentInsights(
     body: `Crypto investing ${pct(nw.btc, nw.total)}% (${[...new Set(p.crypto_investing.map(c => c.symbol))].join(' + ')}) + Hyperliquid ${pct(nw.hl, nw.total)}% (active trading). ${cryptoPct > 40 ? 'Above typical 10–20% recommended allocation — high volatility risk.' : 'Within manageable range.'}`,
   });
 
-  insights.push({
-    type: 'info',
-    title: `Banking concentration: ${bankPct}% of stock portfolio`,
-    body: `BMRI + BBRI + BBCA are all banking sector. Strong blue-chip picks (government-backed) but single-sector risk. EMAS (gold mining), SINI (industrial), and SSIA (property/construction) add some diversification.`,
-  });
+  const sectors = Object.entries(p.stocks_sectors).sort((a, b) => b[1] - a[1]);
+  if (sectors.length && sectors[0][1] >= 50) {
+    const [topSector, topPct] = sectors[0];
+    insights.push({
+      type: 'info',
+      title: `Sector concentration: ${topPct}% of stocks in ${topSector}`,
+      body: `More than half the stock portfolio sits in one sector. ${
+        sectors.length > 1
+          ? `Remaining exposure: ${sectors.slice(1).map(([n, v]) => `${n} ${v}%`).join(', ')}.`
+          : 'Consider diversifying across sectors.'
+      }`,
+    });
+  }
 
   if (p.stocks_pnl_pct < -10) {
     insights.push({
       type: 'info',
       title: `Stocks underwater: ${p.stocks_pnl_pct}% (−${fmt(Math.abs(p.stocks_pnl_idr))} IDR)`,
-      body: `Unrealized loss. Indonesian bank stocks are historically resilient long-term. Selling now locks in the loss — hold and consider DCA if cash flow allows.`,
+      body: `Unrealized loss. Selling now locks in the loss — hold and consider DCA if cash flow allows.`,
     });
   }
 
+  const monthsOfSpending = avgMonthlyExpense > 0 ? nw.savings / avgMonthlyExpense : 0;
   insights.push({
     type: savingsPct >= 25 ? 'positive' : 'warning',
     title: `Savings: ${savingsPct.toFixed(1)}% liquid (${fmt(nw.savings)} IDR)`,
-    body: `Deviota savings cover ~${(nw.savings / 7_300_000).toFixed(1)} months of current spending. ${savingsPct >= 25 ? 'Healthy buffer.' : 'Consider building to 3–6 months of expenses (21–44M).'}`,
+    body: `Liquid savings cover ~${monthsOfSpending.toFixed(1)} months of average spending (${fmt(avgMonthlyExpense)}/month). ${
+      savingsPct >= 25 || monthsOfSpending >= 3
+        ? 'Healthy buffer.'
+        : `Consider building to 3–6 months of expenses (${fmt(avgMonthlyExpense * 3)}–${fmt(avgMonthlyExpense * 6)}).`
+    }`,
   });
 
   if (p.crypto_investing.length > 1) {
@@ -206,7 +207,7 @@ export function AnalysisPage() {
   const [prevSnapshot, setPrevSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [usdIdr, setUsdIdr] = useState<number>(16500);
+  const [usdIdr, setUsdIdr] = useState<number>(FALLBACK_USD_IDR);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -229,9 +230,10 @@ export function AnalysisPage() {
     }
   };
 
+  // NB: doesn't set loading=true itself — initial state is true, and the
+  // Refresh button sets it before calling, so the effect stays setState-free.
   const load = async () => {
     if (!session) return;
-    setLoading(true);
     const [{ data }, rate] = await Promise.all([
       supabase.from('transactions').select('*').order('date'),
       fetchUsdIdr(),
@@ -246,6 +248,8 @@ export function AnalysisPage() {
     refreshInsights(txnData);
   };
 
+  // Data fetch on mount; every setState in load() happens after an await.
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [session]);
 
   const months = useMemo(() => buildMonthlyStats(txns), [txns]);
@@ -294,10 +298,15 @@ export function AnalysisPage() {
     return { stocks, btc, hl, savings, total: stocks + btc + hl + savings };
   }, [portfolio, usdIdr]);
 
+  const avgMonthlyExpense = useMemo(
+    () => (months.length ? months.reduce((s, m) => s + m.expense, 0) / months.length : 0),
+    [months],
+  );
+
   const investmentInsights = useMemo(() => {
     if (!portfolio || !netWorth) return [];
-    return computeInvestmentInsights(portfolio, netWorth);
-  }, [portfolio, netWorth]);
+    return computeInvestmentInsights(portfolio, netWorth, avgMonthlyExpense);
+  }, [portfolio, netWorth, avgMonthlyExpense]);
 
   // Net worth at the previous snapshot, for "vs last time" comparisons.
   const prevNetWorth = useMemo(() => {
@@ -400,14 +409,14 @@ export function AnalysisPage() {
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Financial Analysis</h1>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-slate-900">Financial Analysis</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
             {months.length ? `${months[0].label}–${months[months.length - 1].label} ${months[months.length - 1].month.slice(0, 4)}` : 'No data'} · {txns.length} transactions · refreshed {lastRefresh.toLocaleTimeString('id-ID')}
           </p>
         </div>
         <button
-          onClick={load}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          onClick={() => { setLoading(true); load(); }}
+          className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -419,7 +428,7 @@ export function AnalysisPage() {
       {totalUncategorized > 0 && (
         <a
           href="#/transactions?category=Uncategorized"
-          className="mb-6 flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
+          className="mb-6 flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 hover:bg-amber-100"
         >
           <span>⚠️ {totalUncategorized} uncategorized transaction{totalUncategorized > 1 ? 's' : ''} across this period</span>
           <span className="font-medium underline">Review →</span>
@@ -430,16 +439,16 @@ export function AnalysisPage() {
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family + Salary' },
-          { label: 'Avg Monthly Expense', value: avgExpense, color: 'text-red-500', note: 'Variable spending' },
-          { label: '4-Month Net', value: totalNet, color: totalNet >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'Income − expense' },
-          { label: 'Monthly Gap', value: avgIncome - avgExpense, color: (avgIncome - avgExpense) >= 0 ? 'text-emerald-600' : 'text-red-500', note: 'avg income − avg expense' },
+          { label: 'Avg Monthly Expense', value: avgExpense, color: 'text-rose-500', note: 'Variable spending' },
+          { label: `${months.length}-Month Net`, value: totalNet, color: totalNet >= 0 ? 'text-emerald-600' : 'text-rose-500', note: 'Income − expense' },
+          { label: 'Monthly Gap', value: avgIncome - avgExpense, color: (avgIncome - avgExpense) >= 0 ? 'text-emerald-600' : 'text-rose-500', note: 'avg income − avg expense' },
         ].map(({ label, value, color, note }) => (
-          <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+          <div key={label} className="rounded-xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
             <p className={`mt-1 text-xl font-bold ${color}`}>
               {value >= 0 ? '+' : '−'}{fmt(Math.abs(Math.round(value)))}
             </p>
-            <p className="mt-0.5 text-xs text-gray-400">{note}</p>
+            <p className="mt-0.5 text-xs text-slate-400">{note}</p>
           </div>
         ))}
       </div>
@@ -448,8 +457,8 @@ export function AnalysisPage() {
       <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
 
         {/* Cash flow chart */}
-        <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-4 font-semibold text-gray-800">Monthly Cash Flow</h2>
+        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="mb-4 font-semibold text-slate-800">Monthly Cash Flow</h2>
           <ResponsiveContainer width="100%" height={220}>
             <ComposedChart data={cashFlowData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -465,23 +474,23 @@ export function AnalysisPage() {
         </div>
 
         {/* Donut */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
-          <h2 className="mb-4 font-semibold text-gray-800">Spending Breakdown</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="mb-4 font-semibold text-slate-800">Spending Breakdown</h2>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80}>
                 {donutData.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
               </Pie>
               <Tooltip formatter={(v) => fmt(v as number)} />
-              <Legend iconType="circle" iconSize={8} formatter={v => <span className="text-xs text-gray-600">{v}</span>} />
+              <Legend iconType="circle" iconSize={8} formatter={v => <span className="text-xs text-slate-600">{v}</span>} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Category trend */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
-        <h2 className="mb-4 font-semibold text-gray-800">Spending by Category — Monthly Trend</h2>
+      <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="mb-4 font-semibold text-slate-800">Spending by Category — Monthly Trend</h2>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={stackedData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -498,34 +507,34 @@ export function AnalysisPage() {
       </div>
 
       {/* Category totals by month */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
-        <h2 className="mb-4 font-semibold text-gray-800">Spending by Category — Monthly Totals</h2>
+      <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 overflow-x-auto">
+        <h2 className="mb-4 font-semibold text-slate-800">Spending by Category — Monthly Totals</h2>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+            <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wide">
               <th className="pb-2 text-left font-medium">Category</th>
               {months.map(m => <th key={m.month} className="pb-2 text-right font-medium">{m.label}</th>)}
               <th className="pb-2 text-right font-medium">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-50">
             {allCategoryNames.map(cat => (
-              <tr key={cat} className="hover:bg-gray-50">
-                <td className="py-2 font-medium text-gray-800">{cat}</td>
+              <tr key={cat} className="hover:bg-slate-50">
+                <td className="py-2 font-medium text-slate-800">{cat}</td>
                 {months.map(m => (
-                  <td key={m.month} className="py-2 text-right tabular-nums text-gray-600">
+                  <td key={m.month} className="py-2 text-right tabular-nums text-slate-600">
                     {m.byCategory[cat] ? fmt(m.byCategory[cat]) : '—'}
                   </td>
                 ))}
-                <td className="py-2 text-right tabular-nums font-semibold text-gray-800">{fmt(allTimeCats[cat] ?? 0)}</td>
+                <td className="py-2 text-right tabular-nums font-semibold text-slate-800">{fmt(allTimeCats[cat] ?? 0)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t border-gray-200">
-              <td className="pt-2 font-bold text-gray-800">Total</td>
-              {months.map(m => <td key={m.month} className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(m.expense)}</td>)}
-              <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.expense, 0))}</td>
+            <tr className="border-t border-slate-200">
+              <td className="pt-2 font-bold text-slate-800">Total</td>
+              {months.map(m => <td key={m.month} className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(m.expense)}</td>)}
+              <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(months.reduce((s, m) => s + m.expense, 0))}</td>
             </tr>
           </tfoot>
         </table>
@@ -533,72 +542,72 @@ export function AnalysisPage() {
 
       {/* Fixed costs + Investment contributions by month */}
       <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
-          <h2 className="mb-4 font-semibold text-gray-800">Fixed Costs — Monthly</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 overflow-x-auto">
+          <h2 className="mb-4 font-semibold text-slate-800">Fixed Costs — Monthly</h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+              <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wide">
                 <th className="pb-2 text-left font-medium">Month</th>
                 <th className="pb-2 text-right font-medium">Rent</th>
                 <th className="pb-2 text-right font-medium">Insurance</th>
                 <th className="pb-2 text-right font-medium">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-50">
               {months.map(m => (
-                <tr key={m.month} className="hover:bg-gray-50">
-                  <td className="py-2 font-medium text-gray-800">{m.label}</td>
-                  <td className="py-2 text-right tabular-nums text-gray-600">{m.rent ? fmt(m.rent) : '—'}</td>
-                  <td className="py-2 text-right tabular-nums text-gray-600">{m.insurance ? fmt(m.insurance) : '—'}</td>
-                  <td className="py-2 text-right tabular-nums font-semibold text-gray-800">{fmt(m.rent + m.insurance)}</td>
+                <tr key={m.month} className="hover:bg-slate-50">
+                  <td className="py-2 font-medium text-slate-800">{m.label}</td>
+                  <td className="py-2 text-right tabular-nums text-slate-600">{m.rent ? fmt(m.rent) : '—'}</td>
+                  <td className="py-2 text-right tabular-nums text-slate-600">{m.insurance ? fmt(m.insurance) : '—'}</td>
+                  <td className="py-2 text-right tabular-nums font-semibold text-slate-800">{fmt(m.rent + m.insurance)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-gray-200">
-                <td className="pt-2 font-bold text-gray-800">Total</td>
-                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.rent, 0))}</td>
-                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(months.reduce((s, m) => s + m.insurance, 0))}</td>
-                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(totalFixedCosts)}</td>
+              <tr className="border-t border-slate-200">
+                <td className="pt-2 font-bold text-slate-800">Total</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(months.reduce((s, m) => s + m.rent, 0))}</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(months.reduce((s, m) => s + m.insurance, 0))}</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(totalFixedCosts)}</td>
               </tr>
             </tfoot>
           </table>
-          <p className="mt-2 text-xs text-gray-400">Rent is a pass-through (excluded from Expenses KPI); Insurance is counted as a real expense.</p>
+          <p className="mt-2 text-xs text-slate-400">Rent is a pass-through (excluded from Expenses KPI); Insurance is counted as a real expense.</p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
-          <h2 className="mb-4 font-semibold text-gray-800">Investment Contributions — Monthly</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 overflow-x-auto">
+          <h2 className="mb-4 font-semibold text-slate-800">Investment Contributions — Monthly</h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+              <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wide">
                 <th className="pb-2 text-left font-medium">Month</th>
                 <th className="pb-2 text-right font-medium">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-slate-50">
               {months.map(m => (
-                <tr key={m.month} className="hover:bg-gray-50">
-                  <td className="py-2 font-medium text-gray-800">{m.label}</td>
-                  <td className="py-2 text-right tabular-nums text-gray-600">{m.investment ? fmt(m.investment) : '—'}</td>
+                <tr key={m.month} className="hover:bg-slate-50">
+                  <td className="py-2 font-medium text-slate-800">{m.label}</td>
+                  <td className="py-2 text-right tabular-nums text-slate-600">{m.investment ? fmt(m.investment) : '—'}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-gray-200">
-                <td className="pt-2 font-bold text-gray-800">Total</td>
-                <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(totalInvestment)}</td>
+              <tr className="border-t border-slate-200">
+                <td className="pt-2 font-bold text-slate-800">Total</td>
+                <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(totalInvestment)}</td>
               </tr>
             </tfoot>
           </table>
-          <p className="mt-2 text-xs text-gray-400">Transfers into investment accounts (excluded from Expenses KPI).</p>
+          <p className="mt-2 text-xs text-slate-400">Transfers into investment accounts (excluded from Expenses KPI).</p>
         </div>
       </div>
 
       {/* Reimbursable Tracker */}
       {(reimbursableData.paid.length > 0 || reimbursableData.received.length > 0) && (
-        <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-800">Reimbursable Tracker</h2>
+            <h2 className="font-semibold text-slate-800">Reimbursable Tracker</h2>
             <span className={`rounded-full px-3 py-1 text-sm font-semibold ${
               reimbursableData.outstanding > 0
                 ? 'bg-amber-100 text-amber-700'
@@ -610,12 +619,12 @@ export function AnalysisPage() {
 
           <div className="mb-4 grid grid-cols-3 gap-3">
             {[
-              { label: 'Total Paid Out', value: reimbursableData.totalPaid, color: 'text-red-500' },
+              { label: 'Total Paid Out', value: reimbursableData.totalPaid, color: 'text-rose-500' },
               { label: 'Total Received Back', value: reimbursableData.totalReceived, color: 'text-emerald-600' },
               { label: 'Still Outstanding', value: reimbursableData.outstanding, color: reimbursableData.outstanding > 0 ? 'text-amber-600' : 'text-emerald-600' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="rounded-lg bg-gray-50 p-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
+              <div key={label} className="rounded-lg bg-slate-50 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
                 <p className={`mt-1 text-lg font-bold tabular-nums ${color}`}>{fmt(value)}</p>
               </div>
             ))}
@@ -623,15 +632,15 @@ export function AnalysisPage() {
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-red-500">Paid Out (Reimbursable)</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-rose-500">Paid Out (Reimbursable)</p>
               <div className="space-y-1.5">
                 {reimbursableData.paid.map(t => (
-                  <div key={t.id} className="flex items-start justify-between gap-2 rounded-lg border border-red-50 bg-red-50 px-3 py-2">
+                  <div key={t.id} className="flex items-start justify-between gap-2 rounded-lg border border-rose-50 bg-rose-50 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-gray-700">{t.description}</p>
-                      <p className="text-xs text-gray-400">{t.date}</p>
+                      <p className="truncate text-xs font-medium text-slate-700">{t.description}</p>
+                      <p className="text-xs text-slate-400">{t.date}</p>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-red-600">−{fmt(t.amount)}</span>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-rose-600">−{fmt(t.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -643,8 +652,8 @@ export function AnalysisPage() {
                 {reimbursableData.received.map(t => (
                   <div key={t.id} className="flex items-start justify-between gap-2 rounded-lg border border-emerald-50 bg-emerald-50 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-gray-700">{t.description}</p>
-                      <p className="text-xs text-gray-400">{t.date}</p>
+                      <p className="truncate text-xs font-medium text-slate-700">{t.description}</p>
+                      <p className="text-xs text-slate-400">{t.date}</p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold tabular-nums text-emerald-600">+{fmt(t.amount)}</span>
                   </div>
@@ -666,47 +675,47 @@ export function AnalysisPage() {
 
         {/* Net worth */}
         {netWorth && (
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="mb-4 font-semibold text-gray-800">Net Worth Snapshot</h2>
-            <p className="text-3xl font-bold text-gray-900 mb-4">{fmt(Math.round(netWorth.total))} IDR</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-4 font-semibold text-slate-800">Net Worth Snapshot</h2>
+            <p className="text-3xl font-bold text-slate-900 mb-4">{fmt(Math.round(netWorth.total))} IDR</p>
             <div className="space-y-2">
               {[
-                { label: 'Stocks (StockBit)', value: netWorth.stocks, note: `${portfolio!.stocks_pnl_pct}% unrealized`, color: 'bg-blue-500' },
-                { label: 'Crypto (Indodax + FLOQ)', value: netWorth.btc, note: 'Crypto investing', color: 'bg-orange-400' },
-                { label: 'Hyperliquid', value: netWorth.hl, note: `$${portfolio!.crypto_trading.total_equity_usd} @ ${fmt(usdIdr)}`, color: 'bg-purple-400' },
-                { label: 'Deviota Savings', value: netWorth.savings, note: 'Liquid savings', color: 'bg-emerald-400' },
+                { label: 'Stocks', value: netWorth.stocks, note: `${portfolio!.stocks_pnl_pct}% unrealized`, color: 'bg-brand-500' },
+                { label: 'Crypto Investing', value: netWorth.btc, note: [...new Set(portfolio!.crypto_investing.map(c => c.platform))].join(' + '), color: 'bg-orange-400' },
+                { label: portfolio!.crypto_trading.platform, value: netWorth.hl, note: `$${portfolio!.crypto_trading.total_equity_usd} @ ${fmt(usdIdr)}`, color: 'bg-purple-400' },
+                { label: 'Savings', value: netWorth.savings, note: portfolio!.savings.map(s => s.name).join(' + '), color: 'bg-emerald-400' },
               ].map(({ label, value, note, color }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className={`h-2 w-2 rounded-full flex-shrink-0 ${color}`} />
                   <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <span className="text-sm text-gray-700">{label}</span>
-                      <span className="ml-2 hidden text-xs text-gray-400 sm:inline">{note}</span>
+                      <span className="text-sm text-slate-700">{label}</span>
+                      <span className="ml-2 hidden text-xs text-slate-400 sm:inline">{note}</span>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold text-gray-800 tabular-nums">{fmt(Math.round(value))}</span>
+                    <span className="shrink-0 text-sm font-semibold text-slate-800 tabular-nums">{fmt(Math.round(value))}</span>
                   </div>
-                  <div className="hidden h-1.5 w-24 shrink-0 rounded-full bg-gray-100 sm:block">
+                  <div className="hidden h-1.5 w-24 shrink-0 rounded-full bg-slate-100 sm:block">
                     <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${(value / netWorth.total) * 100}%` }} />
                   </div>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-gray-400">1 USD = {fmt(usdIdr)} IDR (live)</p>
+            <p className="mt-3 text-xs text-slate-400">1 USD = {fmt(usdIdr)} IDR (live)</p>
           </div>
         )}
 
         {/* AI Insights */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-gray-800">Key Insights</h2>
+              <h2 className="font-semibold text-slate-800">Key Insights</h2>
               <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">✨ AI</span>
             </div>
             <button
               onClick={() => refreshInsights(txns)}
               disabled={aiLoading}
               title="Regenerate insights"
-              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 transition-colors"
+              className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40 transition-colors"
             >
               <svg className={`h-4 w-4 ${aiLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -716,10 +725,10 @@ export function AnalysisPage() {
           {aiLoading ? (
             <div className="space-y-3">
               {[0, 1, 2, 3, 4].map(i => (
-                <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-3 animate-pulse">
-                  <div className="mb-2 h-3 w-3/4 rounded bg-gray-200" />
-                  <div className="mb-1.5 h-2.5 w-full rounded bg-gray-100" />
-                  <div className="h-2.5 w-2/3 rounded bg-gray-100" />
+                <div key={i} className="rounded-lg border border-slate-100 bg-slate-50 p-3 animate-pulse">
+                  <div className="mb-2 h-3 w-3/4 rounded bg-slate-200" />
+                  <div className="mb-1.5 h-2.5 w-full rounded bg-slate-100" />
+                  <div className="h-2.5 w-2/3 rounded bg-slate-100" />
                 </div>
               ))}
             </div>
@@ -727,9 +736,9 @@ export function AnalysisPage() {
             <div className="space-y-3">
               {(aiInsights.length ? aiInsights : insights).map((ins, i) => (
                 <div key={i} className={`rounded-lg p-3 ${
-                  ins.type === 'warning' ? 'bg-red-50 border border-red-100'
+                  ins.type === 'warning' ? 'bg-rose-50 border border-rose-100'
                   : ins.type === 'positive' ? 'bg-emerald-50 border border-emerald-100'
-                  : 'bg-blue-50 border border-blue-100'
+                  : 'bg-brand-50 border border-brand-100'
                 }`}>
                   <div className="flex items-start gap-2">
                     <span className="mt-0.5 text-base leading-none">
@@ -737,11 +746,11 @@ export function AnalysisPage() {
                     </span>
                     <div>
                       <p className={`text-sm font-semibold ${
-                        ins.type === 'warning' ? 'text-red-700'
+                        ins.type === 'warning' ? 'text-rose-700'
                         : ins.type === 'positive' ? 'text-emerald-700'
-                        : 'text-blue-700'
+                        : 'text-brand-700'
                       }`}>{ins.title}</p>
-                      <p className="mt-0.5 text-xs text-gray-600">{ins.body}</p>
+                      <p className="mt-0.5 text-xs text-slate-600">{ins.body}</p>
                     </div>
                   </div>
                 </div>
@@ -755,14 +764,14 @@ export function AnalysisPage() {
       {netWorth && portfolio && (
         <>
           <div className="mt-8 mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Portfolio Allocation</h2>
-            <p className="text-xs text-gray-400">Asset class breakdown · data as of {portfolio.updated_at}</p>
+            <h2 className="text-lg font-bold text-slate-900">Portfolio Allocation</h2>
+            <p className="text-xs text-slate-400">Asset class breakdown · data as of {portfolio.updated_at}</p>
           </div>
 
           <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Allocation donut */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="mb-4 font-semibold text-gray-800">Asset Allocation</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-slate-800">Asset Allocation</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie data={allocData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85}>
@@ -773,15 +782,15 @@ export function AnalysisPage() {
                   <Tooltip formatter={(v) => `${fmt(v as number)} (${pct(v as number, netWorth.total)}%)`} />
                   <Legend iconType="circle" iconSize={8} formatter={(v) => {
                     const val = allocData.find(d => d.name === v)?.value ?? 0;
-                    return <span className="text-xs text-gray-600">{v}: {pct(val, netWorth.total)}%</span>;
+                    return <span className="text-xs text-slate-600">{v}: {pct(val, netWorth.total)}%</span>;
                   }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
             {/* Stock sector breakdown */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="mb-4 font-semibold text-gray-800">Stock Sector Mix</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-slate-800">Stock Sector Mix</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
@@ -803,22 +812,22 @@ export function AnalysisPage() {
               <div className="mt-2 space-y-3">
                 {sectorData.map(({ name, value }, i) => (
                   <div key={name} className="flex items-center gap-3">
-                    <span className="w-28 shrink-0 text-sm text-gray-600">{name}</span>
-                    <div className="flex-1 h-2.5 rounded-full bg-gray-100">
+                    <span className="w-28 shrink-0 text-sm text-slate-600">{name}</span>
+                    <div className="flex-1 h-2.5 rounded-full bg-slate-100">
                       <div
                         className="h-2.5 rounded-full"
                         style={{ width: `${value}%`, backgroundColor: SECTOR_COLORS[i % SECTOR_COLORS.length] }}
                       />
                     </div>
-                    <span className="w-10 text-right text-sm font-medium text-gray-700">{value}%</span>
+                    <span className="w-10 text-right text-sm font-medium text-slate-700">{value}%</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-2">
                 {portfolio.stocks.map(s => (
-                  <div key={s.symbol} className="flex flex-col items-center rounded-lg bg-gray-50 px-3 py-2">
-                    <span className="text-xs font-bold text-gray-700">{s.symbol}</span>
-                    <span className="text-xs text-gray-400">{fmt(s.value_idr)}</span>
+                  <div key={s.symbol} className="flex flex-col items-center rounded-lg bg-slate-50 px-3 py-2">
+                    <span className="text-xs font-bold text-slate-700">{s.symbol}</span>
+                    <span className="text-xs text-slate-400">{fmt(s.value_idr)}</span>
                   </div>
                 ))}
               </div>
@@ -828,51 +837,51 @@ export function AnalysisPage() {
           {/* Investment Analyst */}
           <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Asset performance table */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="mb-4 font-semibold text-gray-800">Asset Performance</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-slate-800">Asset Performance</h3>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                  <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wide">
                     <th className="pb-2 text-left font-medium">Asset</th>
                     <th className="pb-2 text-right font-medium">Value (IDR)</th>
                     <th className="pb-2 text-right font-medium">% Total</th>
                     <th className="pb-2 text-right font-medium">Risk</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-50">
                   {portfolio.stocks.map(s => (
-                    <tr key={s.symbol} className="hover:bg-gray-50">
-                      <td className="py-2 font-medium text-gray-800">{s.symbol}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(s.value_idr)}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(s.value_idr, netWorth.total)}%</td>
+                    <tr key={s.symbol} className="hover:bg-slate-50">
+                      <td className="py-2 font-medium text-slate-800">{s.symbol}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-600">{fmt(s.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-500">{pct(s.value_idr, netWorth.total)}%</td>
                       <td className="py-2 text-right">
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Medium</span>
                       </td>
                     </tr>
                   ))}
                   {portfolio.crypto_investing.map(c => (
-                    <tr key={c.platform} className="hover:bg-gray-50">
-                      <td className="py-2 font-medium text-gray-800">{c.symbol} · {c.platform}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(c.value_idr)}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(c.value_idr, netWorth.total)}%</td>
+                    <tr key={c.platform} className="hover:bg-slate-50">
+                      <td className="py-2 font-medium text-slate-800">{c.symbol} · {c.platform}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-600">{fmt(c.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-500">{pct(c.value_idr, netWorth.total)}%</td>
                       <td className="py-2 text-right">
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">High</span>
+                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">High</span>
                       </td>
                     </tr>
                   ))}
-                  <tr className="hover:bg-gray-50">
-                    <td className="py-2 font-medium text-gray-800">Hyperliquid</td>
-                    <td className="py-2 text-right tabular-nums text-gray-600">{fmt(netWorth.hl)}</td>
-                    <td className="py-2 text-right tabular-nums text-gray-500">{pct(netWorth.hl, netWorth.total)}%</td>
+                  <tr className="hover:bg-slate-50">
+                    <td className="py-2 font-medium text-slate-800">Hyperliquid</td>
+                    <td className="py-2 text-right tabular-nums text-slate-600">{fmt(netWorth.hl)}</td>
+                    <td className="py-2 text-right tabular-nums text-slate-500">{pct(netWorth.hl, netWorth.total)}%</td>
                     <td className="py-2 text-right">
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Very High</span>
+                      <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">Very High</span>
                     </td>
                   </tr>
                   {portfolio.savings.map(sv => (
-                    <tr key={sv.name} className="hover:bg-gray-50">
-                      <td className="py-2 font-medium text-gray-800">{sv.name}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-600">{fmt(sv.value_idr)}</td>
-                      <td className="py-2 text-right tabular-nums text-gray-500">{pct(sv.value_idr, netWorth.total)}%</td>
+                    <tr key={sv.name} className="hover:bg-slate-50">
+                      <td className="py-2 font-medium text-slate-800">{sv.name}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-600">{fmt(sv.value_idr)}</td>
+                      <td className="py-2 text-right tabular-nums text-slate-500">{pct(sv.value_idr, netWorth.total)}%</td>
                       <td className="py-2 text-right">
                         <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Low</span>
                       </td>
@@ -880,29 +889,29 @@ export function AnalysisPage() {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-gray-200">
-                    <td className="pt-2 font-bold text-gray-800">Total</td>
-                    <td className="pt-2 text-right tabular-nums font-bold text-gray-800">{fmt(netWorth.total)}</td>
-                    <td className="pt-2 text-right text-gray-400 text-xs">100%</td>
+                  <tr className="border-t border-slate-200">
+                    <td className="pt-2 font-bold text-slate-800">Total</td>
+                    <td className="pt-2 text-right tabular-nums font-bold text-slate-800">{fmt(netWorth.total)}</td>
+                    <td className="pt-2 text-right text-slate-400 text-xs">100%</td>
                     <td />
                   </tr>
                 </tfoot>
               </table>
-              <p className="mt-2 text-xs text-gray-400">
+              <p className="mt-2 text-xs text-slate-400">
                 Stocks PnL: {portfolio.stocks_pnl_pct > 0 ? '+' : ''}{portfolio.stocks_pnl_pct}%
                 ({portfolio.stocks_pnl_idr >= 0 ? '+' : '−'}{fmt(Math.abs(portfolio.stocks_pnl_idr))} IDR unrealized)
               </p>
             </div>
 
             {/* Investment analyst insights */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="mb-4 font-semibold text-gray-800">Investment Analyst</h3>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="mb-4 font-semibold text-slate-800">Investment Analyst</h3>
               <div className="space-y-3">
                 {investmentInsights.map((ins, i) => (
                   <div key={i} className={`rounded-lg p-3 ${
-                    ins.type === 'warning' ? 'bg-red-50 border border-red-100'
+                    ins.type === 'warning' ? 'bg-rose-50 border border-rose-100'
                     : ins.type === 'positive' ? 'bg-emerald-50 border border-emerald-100'
-                    : 'bg-blue-50 border border-blue-100'
+                    : 'bg-brand-50 border border-brand-100'
                   }`}>
                     <div className="flex items-start gap-2">
                       <span className="mt-0.5 text-base leading-none">
@@ -910,11 +919,11 @@ export function AnalysisPage() {
                       </span>
                       <div>
                         <p className={`text-sm font-semibold ${
-                          ins.type === 'warning' ? 'text-red-700'
+                          ins.type === 'warning' ? 'text-rose-700'
                           : ins.type === 'positive' ? 'text-emerald-700'
-                          : 'text-blue-700'
+                          : 'text-brand-700'
                         }`}>{ins.title}</p>
-                        <p className="mt-0.5 text-xs text-gray-600">{ins.body}</p>
+                        <p className="mt-0.5 text-xs text-slate-600">{ins.body}</p>
                       </div>
                     </div>
                   </div>
@@ -927,8 +936,8 @@ export function AnalysisPage() {
           {prevSnapshot && prevNetWorth && (
             <>
               <div className="mt-8 mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Portfolio Changes</h2>
-                <p className="text-xs text-gray-400">
+                <h2 className="text-lg font-bold text-slate-900">Portfolio Changes</h2>
+                <p className="text-xs text-slate-400">
                   vs snapshot from {new Date(prevSnapshot.snapshot_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
@@ -944,10 +953,10 @@ export function AnalysisPage() {
                   const delta = now - before;
                   const deltaPct = before !== 0 ? (delta / before) * 100 : 0;
                   return (
-                    <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-                      <p className="mt-1 text-lg font-bold text-gray-900">{fmt(now)}</p>
-                      <p className={`mt-0.5 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    <div key={label} className="rounded-xl border border-slate-200 bg-white p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">{fmt(now)}</p>
+                      <p className={`mt-0.5 text-xs font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
                         {delta >= 0 ? '▲' : '▼'} {fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
                       </p>
                     </div>
@@ -957,8 +966,8 @@ export function AnalysisPage() {
 
               <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Net worth trend */}
-                <div className="rounded-xl border border-gray-200 bg-white p-5">
-                  <h3 className="mb-4 font-semibold text-gray-800">Net Worth Trend</h3>
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-slate-800">Net Worth Trend</h3>
                   <ResponsiveContainer width="100%" height={220}>
                     <AreaChart
                       data={[
@@ -977,8 +986,8 @@ export function AnalysisPage() {
                 </div>
 
                 {/* Allocation shift */}
-                <div className="rounded-xl border border-gray-200 bg-white p-5">
-                  <h3 className="mb-4 font-semibold text-gray-800">Capital Allocation Shift</h3>
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <h3 className="mb-4 font-semibold text-slate-800">Capital Allocation Shift</h3>
                   <ResponsiveContainer width="100%" height={220}>
                     <ComposedChart
                       data={[
@@ -1002,30 +1011,30 @@ export function AnalysisPage() {
               </div>
 
               {/* Holding-by-holding delta table */}
-              <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 overflow-x-auto">
-                <h3 className="mb-4 font-semibold text-gray-800">Holding-by-Holding Change</h3>
+              <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 overflow-x-auto">
+                <h3 className="mb-4 font-semibold text-slate-800">Holding-by-Holding Change</h3>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
+                    <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wide">
                       <th className="pb-2 text-left font-medium">Asset</th>
                       <th className="pb-2 text-right font-medium">Last</th>
                       <th className="pb-2 text-right font-medium">Now</th>
                       <th className="pb-2 text-right font-medium">Change</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-slate-50">
                     {holdingDeltas.map(({ group, label, before, now, nowExtra }) => {
                       const delta = now - before;
                       const deltaPct = before !== 0 ? (delta / before) * 100 : (now !== 0 ? 100 : 0);
                       return (
-                        <tr key={`${group}-${label}`} className="hover:bg-gray-50">
-                          <td className="py-2 font-medium text-gray-800">
+                        <tr key={`${group}-${label}`} className="hover:bg-slate-50">
+                          <td className="py-2 font-medium text-slate-800">
                             {group} · {label}
-                            {nowExtra && <span className="ml-1.5 text-xs text-gray-400">({nowExtra})</span>}
+                            {nowExtra && <span className="ml-1.5 text-xs text-slate-400">({nowExtra})</span>}
                           </td>
-                          <td className="py-2 text-right tabular-nums text-gray-500">{fmt(before)}</td>
-                          <td className="py-2 text-right tabular-nums text-gray-800">{fmt(now)}</td>
-                          <td className={`py-2 text-right tabular-nums font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                          <td className="py-2 text-right tabular-nums text-slate-500">{fmt(before)}</td>
+                          <td className="py-2 text-right tabular-nums text-slate-800">{fmt(now)}</td>
+                          <td className={`py-2 text-right tabular-nums font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
                             {delta >= 0 ? '+' : '−'}{fmt(Math.abs(delta))} ({delta >= 0 ? '+' : '−'}{Math.abs(deltaPct).toFixed(1)}%)
                           </td>
                         </tr>

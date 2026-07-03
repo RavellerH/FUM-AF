@@ -29,8 +29,9 @@ export function useAuth() {
 
   const signOut = () => supabase.auth.signOut();
 
-  // TODO: re-enable whitelist once VITE_ALLOWED_EMAIL secret is confirmed correct
-  const isWhitelisted = true || !ALLOWED_EMAIL || session?.user?.email?.toLowerCase() === ALLOWED_EMAIL;
+  // Client-side gate is UX only — the DB whitelist trigger is the real guard.
+  // Enforced only when VITE_ALLOWED_EMAIL is set, so a missing secret can't lock you out.
+  const isWhitelisted = !ALLOWED_EMAIL || session?.user?.email?.toLowerCase() === ALLOWED_EMAIL;
 
   return { session, loading, signIn, signOut, isWhitelisted };
 }

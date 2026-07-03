@@ -1,5 +1,5 @@
 export const CATEGORY_COLORS: Record<string, string> = {
-  'Third-Party Transfer': 'bg-blue-100 text-blue-700',
+  'Third-Party Transfer': 'bg-brand-100 text-brand-700',
   'Reimbursable':        'bg-lime-100 text-lime-700',
   'Investment':        'bg-purple-100 text-purple-700',
   'Family':            'bg-emerald-100 text-emerald-700',
@@ -18,13 +18,13 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'Entertainment':     'bg-violet-100 text-violet-700',
   'Work':              'bg-indigo-100 text-indigo-700',
   'Services':          'bg-indigo-100 text-indigo-700',
-  'Loan':              'bg-red-100 text-red-700',
-  'Cash':              'bg-gray-100 text-gray-600',
-  'Uncategorized':     'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-400',
+  'Loan':              'bg-rose-100 text-rose-700',
+  'Cash':              'bg-slate-100 text-slate-600',
+  'Uncategorized':     'bg-amber-100 text-amber-800 ring-1 ring-amber-400',
 };
 
 export function categoryPillCls(cat: string) {
-  return CATEGORY_COLORS[cat] ?? 'bg-gray-100 text-gray-600';
+  return CATEGORY_COLORS[cat] ?? 'bg-slate-100 text-slate-600';
 }
 
 export function suggestPattern(description: string): string {

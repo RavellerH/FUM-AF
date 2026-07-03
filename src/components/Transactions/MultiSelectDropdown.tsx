@@ -28,34 +28,34 @@ export function MultiSelectDropdown({ label, options, selected, onChange }: Prop
       <button
         onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition ${
-          selected.length ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+          selected.length ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
         }`}
       >
         {label}
         {selected.length > 0 && (
-          <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{selected.length}</span>
+          <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{selected.length}</span>
         )}
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+        <div className="absolute z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
           {selected.length > 0 && (
             <button
               onClick={() => onChange([])}
-              className="mb-1 w-full rounded px-2 py-1 text-left text-xs text-blue-600 hover:bg-blue-50"
+              className="mb-1 w-full rounded px-2 py-1 text-left text-xs text-brand-600 hover:bg-brand-50"
             >
               Clear all
             </button>
           )}
           {options.map(opt => (
-            <label key={opt} className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} className="rounded border-gray-300" />
+            <label key={opt} className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} className="rounded border-slate-300" />
               {opt}
             </label>
           ))}
-          {!options.length && <p className="px-2 py-1 text-xs text-gray-400">No options</p>}
+          {!options.length && <p className="px-2 py-1 text-xs text-slate-400">No options</p>}
         </div>
       )}
     </div>

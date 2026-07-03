@@ -3,6 +3,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
 import { supabase } from '../../lib/supabase';
+import { EXCLUDE_FROM_EXPENSE, INCOME_CATEGORIES, UNCATEGORIZED } from '../../lib/constants';
+import { fmt } from '../../lib/format';
 import { MonthSelector } from './MonthSelector';
 import { IncomeExpenseBar } from './IncomeExpenseBar';
 import { CategoryDonut } from './CategoryDonut';
@@ -10,21 +12,17 @@ import { CategoryTable } from './CategoryTable';
 import { TopMerchants } from './TopMerchants';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
+import { KpiCard } from '../shared/KpiCard';
+import { PageHeader } from '../shared/PageHeader';
 import type { Transaction } from '../../types';
-
-const EXCLUDE_FROM_EXPENSE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
 
 function currentMonth() {
   return new Date().toISOString().slice(0, 7);
 }
 
-function fmt(v: number) {
-  return v.toLocaleString('id-ID');
-}
-
 function computeStats(txns: Transaction[]) {
   const income = txns
-    .filter(t => t.type === 'income' && ['Family', 'Salary'].includes(t.category))
+    .filter(t => t.type === 'income' && INCOME_CATEGORIES.includes(t.category))
     .reduce((s, t) => s + t.amount, 0);
 
   const rent = txns
@@ -87,14 +85,15 @@ export function DashboardPage() {
   const net = stats.income - expenseAfterAid;
   const hasTransactions = transactions.length > 0;
   const fixedCosts = stats.rent + (stats.byCategory['Insurance'] ?? 0);
-  const uncategorizedCount = transactions.filter(t => t.category === 'Uncategorized').length;
+  const uncategorizedCount = transactions.filter(t => t.category === UNCATEGORIZED).length;
+  const showAid = stats.aid > 0;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <MonthSelector months={months} value={selectedMonth} onChange={setSelectedMonth} />
-      </div>
+      <PageHeader
+        title="Dashboard"
+        action={<MonthSelector months={months} value={selectedMonth} onChange={setSelectedMonth} />}
+      />
 
       {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
 
@@ -102,25 +101,25 @@ export function DashboardPage() {
         <div className="flex justify-center py-20"><Spinner /></div>
       ) : hasData === false ? (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <p className="text-gray-500">No data yet.</p>
-          <a href="#/upload" className="text-sm text-blue-600 hover:underline">Upload your first file →</a>
+          <p className="text-slate-500">No data yet.</p>
+          <a href="#/upload" className="text-sm font-medium text-brand-600 hover:underline">Upload your first file →</a>
         </div>
       ) : (
         <>
           {uncategorizedCount > 0 && (
             <a
               href={`#/transactions?month=${selectedMonth}&category=Uncategorized`}
-              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800 hover:bg-yellow-100"
+              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 hover:bg-amber-100"
             >
               <span>⚠️ {uncategorizedCount} uncategorized transaction{uncategorizedCount > 1 ? 's' : ''} this month</span>
               <span className="font-medium underline">Review →</span>
             </a>
           )}
 
-          {stats.aid > 0 && (
+          {showAid && (
             <a
               href={`#/transactions?month=${selectedMonth}&category=Reimbursement`}
-              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800 hover:bg-blue-100"
+              className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm text-brand-800 hover:bg-brand-100"
             >
               <span>💙 {fmt(stats.aid)} received this month as family aid/reimbursement — already counted in full in Expenses below, since the spending was real</span>
               <span className="font-medium underline">View →</span>
@@ -128,36 +127,29 @@ export function DashboardPage() {
           )}
 
           {/* KPI row */}
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-5">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Income</p>
-              <p className="mt-1 text-xl font-bold text-green-600 sm:text-2xl">{fmt(stats.income)}</p>
-              <p className="mt-1 text-xs text-gray-400">Family + Salary</p>
-            </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Fixed Costs</p>
-              <p className="mt-1 text-xl font-bold text-amber-700 sm:text-2xl">{fmt(fixedCosts)}</p>
-              <p className="mt-1 text-xs text-amber-500">
-                Rent {fmt(stats.rent)} (pass-through) + Insurance {fmt(stats.byCategory['Insurance'] ?? 0)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Expenses</p>
-              <p className="mt-1 text-xl font-bold text-red-600 sm:text-2xl">{fmt(stats.expense)}</p>
-              <p className="mt-1 text-xs text-gray-400">Variable spending</p>
-            </div>
-            {stats.aid > 0 && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-blue-700">Expenses − Aid</p>
-                <p className="mt-1 text-xl font-bold text-blue-700 sm:text-2xl">{fmt(expenseAfterAid)}</p>
-                <p className="mt-1 text-xs text-blue-500">Expenses {fmt(stats.expense)} − aid received {fmt(stats.aid)}</p>
-              </div>
+          <div className={`mb-6 grid grid-cols-2 gap-3 sm:gap-4 ${showAid ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+            <KpiCard label="Income" value={fmt(stats.income)} note="Family + Salary" valueTone="positive" />
+            <KpiCard
+              label="Fixed Costs"
+              value={fmt(fixedCosts)}
+              note={`Rent ${fmt(stats.rent)} (pass-through) + Insurance ${fmt(stats.byCategory['Insurance'] ?? 0)}`}
+              tone="warning"
+            />
+            <KpiCard label="Expenses" value={fmt(stats.expense)} note="Variable spending" valueTone="negative" />
+            {showAid && (
+              <KpiCard
+                label="Expenses − Aid"
+                value={fmt(expenseAfterAid)}
+                note={`Expenses ${fmt(stats.expense)} − aid received ${fmt(stats.aid)}`}
+                tone="info"
+              />
             )}
-            <div className={`rounded-xl border p-4 sm:p-5 ${net >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Net</p>
-              <p className={`mt-1 text-xl font-bold sm:text-2xl ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(net)}</p>
-              <p className="mt-1 text-xs text-gray-400">Income − (expenses − aid)</p>
-            </div>
+            <KpiCard
+              label="Net"
+              value={fmt(net)}
+              note="Income − (expenses − aid)"
+              tone={net >= 0 ? 'positive' : 'negative'}
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

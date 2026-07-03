@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { Fragment, useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
@@ -11,13 +11,22 @@ import { TransactionRow } from './TransactionRow';
 import { TransactionCard } from './TransactionCard';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
+import { PageHeader } from '../shared/PageHeader';
+import { EXCLUDE_FROM_EXPENSE, INCOME_CATEGORIES, UNCATEGORIZED } from '../../lib/constants';
+import { fmt } from '../../lib/format';
 import type { Transaction, TransactionType } from '../../types';
 
 type SortKey = 'date' | 'amount' | 'category';
 type SortDir = 'asc' | 'desc';
 
-function fmt(v: number) {
-  return v.toLocaleString('id-ID');
+function dayTotals(rows: Transaction[]) {
+  const income = rows
+    .filter(t => t.type === 'income' && INCOME_CATEGORIES.includes(t.category))
+    .reduce((s, t) => s + t.amount, 0);
+  const expense = rows
+    .filter(t => t.type === 'expense' && !EXCLUDE_FROM_EXPENSE.includes(t.category))
+    .reduce((s, t) => s + t.amount, 0);
+  return { income, expense };
 }
 
 function groupByDate(txns: Transaction[]) {
@@ -123,13 +132,10 @@ export function TransactionsPage() {
     }
   }, [sortKey]);
 
-  const EXCLUDE = ['Third-Party Transfer', 'Housing', 'Investment', 'Reimbursable'];
-
   // Summary stats — exclude passthroughs and non-personal categories
   const stats = useMemo(() => {
-    const income  = visible.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
-    const expense = visible.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
-    const uncategorized = visible.filter(t => t.category === 'Uncategorized').length;
+    const { income, expense } = dayTotals(visible);
+    const uncategorized = visible.filter(t => t.category === UNCATEGORIZED).length;
     return { income, expense, net: income - expense, uncategorized };
   }, [visible]);
 
@@ -144,11 +150,10 @@ export function TransactionsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <span className="text-sm text-gray-500">{visible.length} of {transactions.length} records</span>
-      </div>
+      <PageHeader
+        title="Transactions"
+        action={<span className="text-sm text-slate-500">{visible.length} of {transactions.length} records</span>}
+      />
 
       {/* Filters */}
       <div className="mb-4">
@@ -168,29 +173,29 @@ export function TransactionsPage() {
       {visible.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-3">
           {/* Income + Expense side by side in one card */}
-          <div className="flex flex-1 min-w-[200px] overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <div className="flex-1 border-r border-gray-100 px-5 py-3">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Income</p>
+          <div className="flex flex-1 min-w-[200px] overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className="flex-1 border-r border-slate-100 px-5 py-3">
+              <p className="text-xs text-slate-400 uppercase tracking-wide">Income</p>
               <p className="text-lg font-bold text-emerald-600">+{fmt(stats.income)}</p>
             </div>
             <div className="flex-1 px-5 py-3">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Expense</p>
-              <p className="text-lg font-bold text-red-500">−{fmt(stats.expense)}</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide">Expense</p>
+              <p className="text-lg font-bold text-rose-500">−{fmt(stats.expense)}</p>
             </div>
           </div>
 
           {/* Net */}
-          <div className="flex-1 min-w-[140px] rounded-lg border border-gray-200 bg-white px-5 py-3">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Net</p>
-            <p className={`text-lg font-bold ${stats.net >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+          <div className="flex-1 min-w-[140px] rounded-lg border border-slate-200 bg-white px-5 py-3">
+            <p className="text-xs text-slate-400 uppercase tracking-wide">Net</p>
+            <p className={`text-lg font-bold ${stats.net >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
               {stats.net >= 0 ? '+' : '−'}{fmt(Math.abs(stats.net))}
             </p>
           </div>
 
           {/* Uncategorized */}
-          <div className={`flex-1 min-w-[140px] rounded-lg border px-5 py-3 ${stats.uncategorized > 0 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-white'}`}>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Uncategorized</p>
-            <p className={`text-lg font-bold ${stats.uncategorized > 0 ? 'text-yellow-700' : 'text-gray-400'}`}>
+          <div className={`flex-1 min-w-[140px] rounded-lg border px-5 py-3 ${stats.uncategorized > 0 ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+            <p className="text-xs text-slate-400 uppercase tracking-wide">Uncategorized</p>
+            <p className={`text-lg font-bold ${stats.uncategorized > 0 ? 'text-amber-700' : 'text-slate-400'}`}>
               {stats.uncategorized}
             </p>
           </div>
@@ -200,32 +205,31 @@ export function TransactionsPage() {
       {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
 
       {/* Transactions */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         {loading ? (
           <div className="flex justify-center py-20"><Spinner /></div>
         ) : !visible.length ? (
-          <div className="py-20 text-center text-sm text-gray-400">No transactions found.</div>
+          <div className="py-20 text-center text-sm text-slate-400">No transactions found.</div>
         ) : (
           <>
             {/* Mobile: stacked cards, no horizontal scrolling */}
-            <div className="divide-y divide-gray-100 sm:hidden">
+            <div className="divide-y divide-slate-100 sm:hidden">
               {isDateSort ? dates.map(date => {
                 const rows = grouped!.get(date)!;
-                const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
-                const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
+                const { income: dayIncome, expense: dayExpense } = dayTotals(rows);
                 return (
                   <div key={`date-${date}`}>
-                    <div className="flex items-center justify-between border-b border-blue-100 bg-blue-50/70 px-3 py-1.5">
-                      <span className="text-xs font-semibold text-blue-700">
+                    <div className="flex items-center justify-between border-b border-brand-100 bg-brand-50/70 px-3 py-1.5">
+                      <span className="text-xs font-semibold text-brand-700">
                         {new Date(date + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        <span className="ml-1.5 font-normal text-blue-400">({rows.length})</span>
+                        <span className="ml-1.5 font-normal text-brand-400">({rows.length})</span>
                       </span>
                       <span className="flex gap-3 text-xs">
                         {dayIncome > 0 && <span className="font-medium text-emerald-600">+{fmt(dayIncome)}</span>}
-                        {dayExpense > 0 && <span className="font-medium text-red-500">−{fmt(dayExpense)}</span>}
+                        {dayExpense > 0 && <span className="font-medium text-rose-500">−{fmt(dayExpense)}</span>}
                       </span>
                     </div>
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-slate-100">
                       {rows.map(t => (
                         <TransactionCard
                           key={t.id}
@@ -254,17 +258,17 @@ export function TransactionsPage() {
             {/* Desktop/tablet: full table */}
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full">
-                <thead className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 shadow-sm">
+                <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 shadow-sm">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('date')}>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-slate-700" onClick={() => toggleSort('date')}>
                       Date{sortIndicator('date')}
                     </th>
-                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('amount')}>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-slate-700" onClick={() => toggleSort('amount')}>
                       Amount{sortIndicator('amount')}
                     </th>
                     <th className="px-4 py-3 text-left font-medium">Curr</th>
                     <th className="px-4 py-3 text-left font-medium">Type</th>
-                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-gray-700" onClick={() => toggleSort('category')}>
+                    <th className="px-4 py-3 text-left font-medium cursor-pointer select-none hover:text-slate-700" onClick={() => toggleSort('category')}>
                       Category{sortIndicator('category')}
                     </th>
                     <th className="px-4 py-3 text-left font-medium">Description</th>
@@ -275,22 +279,21 @@ export function TransactionsPage() {
                 <tbody>
                   {isDateSort ? dates.map(date => {
                     const rows = grouped!.get(date)!;
-                    const dayIncome  = rows.filter(t => t.type === 'income'  && t.category === 'Family').reduce((s, t) => s + t.amount, 0);
-                    const dayExpense = rows.filter(t => t.type === 'expense' && !EXCLUDE.includes(t.category)).reduce((s, t) => s + t.amount, 0);
+                    const { income: dayIncome, expense: dayExpense } = dayTotals(rows);
                     return (
-                      <>
-                        <tr key={`date-${date}`} className="border-b border-blue-100 bg-blue-50/70">
+                      <Fragment key={date}>
+                        <tr className="border-b border-brand-100 bg-brand-50/70">
                           <td colSpan={8} className="px-4 py-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-blue-700">
+                              <span className="text-xs font-semibold text-brand-700">
                                 {new Date(date + 'T00:00:00').toLocaleDateString('id-ID', {
                                   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                                 })}
-                                <span className="ml-2 font-normal text-blue-400">({rows.length})</span>
+                                <span className="ml-2 font-normal text-brand-400">({rows.length})</span>
                               </span>
                               <span className="flex gap-4 text-xs">
                                 {dayIncome > 0 && <span className="font-medium text-emerald-600">+{fmt(dayIncome)}</span>}
-                                {dayExpense > 0 && <span className="font-medium text-red-500">−{fmt(dayExpense)}</span>}
+                                {dayExpense > 0 && <span className="font-medium text-rose-500">−{fmt(dayExpense)}</span>}
                               </span>
                             </div>
                           </td>
@@ -305,7 +308,7 @@ export function TransactionsPage() {
                             onAddRule={addRule}
                           />
                         ))}
-                      </>
+                      </Fragment>
                     );
                   }) : sorted.map(t => (
                     <TransactionRow

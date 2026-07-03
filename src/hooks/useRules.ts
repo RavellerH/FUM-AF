@@ -62,5 +62,34 @@ export function useRules() {
     setRules(prev => prev.filter(r => r.id !== id));
   }, []);
 
-  return { rules, loading, fetchRules, addRule, deleteRule };
+  // Retroactively apply rules to already-saved uncategorized transactions.
+  // Returns the number of transactions updated.
+  const applyRulesToUncategorized = useCallback(async (): Promise<number> => {
+    const { data: ruleRows, error: rErr } = await supabase.from('rules').select('*');
+    if (rErr) throw rErr;
+    const allRules = (ruleRows ?? []) as Rule[];
+    if (!allRules.length) return 0;
+
+    const { data: txns, error: tErr } = await supabase
+      .from('transactions')
+      .select('id, description')
+      .eq('category', 'Uncategorized');
+    if (tErr) throw tErr;
+
+    let updated = 0;
+    for (const t of txns ?? []) {
+      const match = allRules.find(r =>
+        (t.description ?? '').toLowerCase().includes(r.pattern.toLowerCase())
+      );
+      if (!match) continue;
+      const patch: { category: string; type?: TransactionType } = { category: match.category };
+      if (match.type) patch.type = match.type;
+      const { error: uErr } = await supabase.from('transactions').update(patch).eq('id', t.id);
+      if (uErr) throw uErr;
+      updated++;
+    }
+    return updated;
+  }, []);
+
+  return { rules, loading, fetchRules, addRule, deleteRule, applyRulesToUncategorized };
 }
