@@ -80,8 +80,11 @@ function extractJsonArray(text: string): ParsedTransaction[] {
   return JSON.parse(match[0]) as ParsedTransaction[];
 }
 
+// gemini-1.5-* is retired for new usage; 2.5-flash is the current fast tier.
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 export async function parseTransactionsWithGemini(rawText: string): Promise<ParsedTransaction[]> {
-  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = gemini.getGenerativeModel({ model: GEMINI_MODEL });
   const result = await model.generateContent(buildPrompt(rawText));
   const text = result.response.text();
   return extractJsonArray(text);
@@ -138,7 +141,7 @@ Generate 5 specific financial insights about this spending data. Rules:
 
 Return only the JSON array:`.trim();
 
-  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = gemini.getGenerativeModel({ model: GEMINI_MODEL });
   const result = await model.generateContent(prompt);
   const text = result.response.text();
   const stripped = text.replace(/```(?:json)?\n?/gi, '').trim();

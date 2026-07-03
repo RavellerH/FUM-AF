@@ -5,14 +5,14 @@ export function LoginPage() {
   const { signIn, loading } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">FinanceAF</h1>
-        <p className="mb-8 text-sm text-gray-500">Personal finance tracker — private access only.</p>
+        <h1 className="mb-2 text-2xl font-bold text-slate-900">FinanceAF</h1>
+        <p className="mb-8 text-sm text-slate-500">Personal finance tracker — private access only.</p>
         <button
           onClick={() => signIn()}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"
         >
           {loading ? (
             <Spinner size="sm" />

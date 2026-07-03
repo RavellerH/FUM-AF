@@ -4,6 +4,7 @@ import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
 import { supabase } from '../../lib/supabase';
 import { parseTransactionsWithGemini } from '../../lib/gemini';
+import { useRules, applyRules } from '../../hooks/useRules';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
 
@@ -11,6 +12,7 @@ export function ReParseButton() {
   const { session } = useAuth();
   const { insertTransactions } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
+  const { rules, fetchRules } = useRules();
   const [sourceFiles, setSourceFiles] = useState<string[]>([]);
   const [selected, setSelected] = useState('');
   const [status, setStatus] = useState<'idle' | 'running' | 'done'>('idle');
@@ -18,6 +20,7 @@ export function ReParseButton() {
 
   useEffect(() => {
     if (!session) return;
+    fetchRules();
     supabase
       .from('transactions')
       .select('source_file')
@@ -45,7 +48,8 @@ export function ReParseButton() {
         'date,amount,currency,type,category,description',
         ...data.map(r => `${r.date},${r.amount},${r.currency},${r.type},${r.category},${r.description}`),
       ].join('\n');
-      const parsed = await parseTransactionsWithGemini(csvText);
+      const parsed = applyRules(await parseTransactionsWithGemini(csvText), rules);
+      if (!parsed.length) throw new Error('Gemini returned no transactions — aborting so nothing is deleted.');
       // Delete existing transactions for that source file
       await supabase.from('transactions').delete().eq('source_file', selected);
       // Re-insert
@@ -64,16 +68,16 @@ export function ReParseButton() {
 
   return (
     <div>
-      <h2 className="mb-4 text-base font-semibold text-gray-800">Re-Parse Uploaded File</h2>
+      <h2 className="mb-4 text-base font-semibold text-slate-800">Re-Parse Uploaded File</h2>
       {error && <div className="mb-3"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
       {status === 'done' && (
-        <div className="mb-3 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">Re-parse complete!</div>
+        <div className="mb-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">Re-parse complete!</div>
       )}
       <div className="flex gap-2">
         <select
           value={selected}
           onChange={e => setSelected(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none"
         >
           {sourceFiles.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
@@ -85,7 +89,7 @@ export function ReParseButton() {
           {status === 'running' ? <><Spinner size="sm" /> Running...</> : 'Re-Parse'}
         </button>
       </div>
-      <p className="mt-2 text-xs text-gray-400">This will delete existing transactions from that file and re-run Gemini parsing.</p>
+      <p className="mt-2 text-xs text-slate-400">This will delete existing transactions from that file and re-run Gemini parsing.</p>
     </div>
   );
 }

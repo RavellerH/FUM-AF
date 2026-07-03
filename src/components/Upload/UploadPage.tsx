@@ -5,6 +5,8 @@ import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
 import { fileToText, parseTransactionsWithGemini } from '../../lib/gemini';
 import { useRules, applyRules } from '../../hooks/useRules';
+import { useFilePassword } from '../../hooks/useFilePassword';
+import { PageHeader } from '../shared/PageHeader';
 import type { ParsedTransaction } from '../../types';
 import { DropZone } from './DropZone';
 import { RawPreview } from './RawPreview';
@@ -13,8 +15,6 @@ import { ParsedPreviewTable } from './ParsedPreviewTable';
 import { ErrorBanner } from '../shared/ErrorBanner';
 
 type Step = 'idle' | 'needs-password' | 'previewing' | 'parsing' | 'confirming' | 'saving' | 'done';
-
-const PASSWORD_KEY = 'fum_file_password';
 
 function isPasswordError(e: unknown) {
   const msg = e instanceof Error ? e.message.toLowerCase() : '';
@@ -34,14 +34,15 @@ export function UploadPage() {
   const [parsed, setParsed] = useState<ParsedTransaction[]>([]);
   const [rulesApplied, setRulesApplied] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [password, setPassword] = useState(() => localStorage.getItem(PASSWORD_KEY) ?? '');
+  const { password: savedPassword, setPassword: persistPassword } = useFilePassword();
+  const [password, setPassword] = useState(savedPassword);
 
   useEffect(() => { fetchRules(); }, []);
 
   const readFile = async (f: File, pwd?: string) => {
     const text = await fileToText(f, pwd || undefined);
     if (pwd) {
-      localStorage.setItem(PASSWORD_KEY, pwd);
+      persistPassword(pwd);
       setPassword(pwd);
     }
     setRawText(text);
@@ -51,9 +52,8 @@ export function UploadPage() {
   const handleFile = async (f: File) => {
     setError(null);
     setFile(f);
-    const saved = localStorage.getItem(PASSWORD_KEY) || undefined;
     try {
-      await readFile(f, saved);
+      await readFile(f, savedPassword || undefined);
     } catch (e) {
       if (isPasswordError(e)) {
         setStep('needs-password');
@@ -118,7 +118,7 @@ export function UploadPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Upload Transactions</h1>
+      <PageHeader title="Upload Transactions" subtitle="Mandiri statement PDF, CSV, or Excel" />
 
       {error && <div className="mb-4"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
 
@@ -136,16 +136,16 @@ export function UploadPage() {
               onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
               placeholder="Enter file password"
               autoFocus
-              className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             />
             <div className="flex gap-2">
               <button
                 onClick={handlePasswordSubmit}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 sm:flex-none"
+                className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 sm:flex-none"
               >
                 Unlock
               </button>
-              <button onClick={reset} className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 sm:flex-none">
+              <button onClick={reset} className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 sm:flex-none">
                 Cancel
               </button>
             </div>
@@ -165,8 +165,8 @@ export function UploadPage() {
           {step !== 'done' && <RawPreview text={rawText} fileName={file.name} />}
 
           {step === 'confirming' && rulesApplied > 0 && (
-            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-800">
-              <svg className="h-4 w-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+              <svg className="h-4 w-4 shrink-0 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span><strong>{rulesApplied}</strong> transaction{rulesApplied !== 1 ? 's' : ''} auto-categorized by your rules</span>
@@ -177,16 +177,16 @@ export function UploadPage() {
 
           {(step === 'previewing' || step === 'confirming') && (
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button onClick={reset} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              <button onClick={reset} className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                 Cancel
               </button>
               {step === 'previewing' && (
-                <button onClick={handleParse} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                <button onClick={handleParse} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
                   Parse with Gemini
                 </button>
               )}
               {step === 'confirming' && (
-                <button onClick={handleConfirm} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                <button onClick={handleConfirm} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
                   Save {parsed.length} transactions
                 </button>
               )}

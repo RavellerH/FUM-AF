@@ -14,8 +14,8 @@ export function FilePasswordSetting() {
 
   return (
     <div>
-      <h2 className="mb-1 text-base font-semibold text-gray-900">File Password</h2>
-      <p className="mb-4 text-sm text-gray-500">
+      <h2 className="mb-1 text-base font-semibold text-slate-900">File Password</h2>
+      <p className="mb-4 text-sm text-slate-500">
         Used to unlock password-protected PDF and Excel bank statements.
       </p>
       <div className="flex gap-2">
@@ -24,11 +24,11 @@ export function FilePasswordSetting() {
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder="Enter file password"
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
         />
         <button
           onClick={handleSave}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
         >
           {saved ? 'Saved!' : 'Save'}
         </button>

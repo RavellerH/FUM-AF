@@ -26,8 +26,8 @@ export function TransactionFilters({
   filters, months, categories, search, uncategorizedOnly,
   onChange, onSearch, onUncategorizedOnly,
 }: Props) {
-  const selectCls = "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none";
-  const inputCls = "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none";
+  const selectCls = "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none";
+  const inputCls = "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none";
 
   const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.months.length || filters.type
     || filters.categories.length || filters.amountMin || filters.amountMax || uncategorizedOnly || search;
@@ -42,7 +42,7 @@ export function TransactionFilters({
     <div className="flex flex-wrap items-center gap-3">
       {/* Description search */}
       <div className="relative w-full sm:w-auto">
-        <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
         </svg>
         <input
@@ -50,10 +50,10 @@ export function TransactionFilters({
           placeholder="Search description…"
           value={search}
           onChange={e => onSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none sm:w-52"
+          className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none sm:w-52"
         />
         {search && (
-          <button onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+          <button onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         )}
@@ -68,7 +68,7 @@ export function TransactionFilters({
           className={`${inputCls} min-w-0 flex-1 sm:flex-none`}
           title="From date"
         />
-        <span className="shrink-0 text-xs text-gray-400">to</span>
+        <span className="shrink-0 text-xs text-slate-400">to</span>
         <input
           type="date"
           value={filters.dateTo}
@@ -109,7 +109,7 @@ export function TransactionFilters({
           onChange={e => onChange({ ...filters, amountMin: e.target.value })}
           className={`${inputCls} w-28`}
         />
-        <span className="text-xs text-gray-400">–</span>
+        <span className="text-xs text-slate-400">–</span>
         <input
           type="number"
           placeholder="Max amount"
@@ -124,16 +124,16 @@ export function TransactionFilters({
         onClick={() => onUncategorizedOnly(!uncategorizedOnly)}
         className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition ${
           uncategorizedOnly
-            ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
-            : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+            ? 'border-amber-400 bg-amber-50 text-amber-800'
+            : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
         }`}
       >
-        <span className={`h-2 w-2 rounded-full ${uncategorizedOnly ? 'bg-yellow-500' : 'bg-gray-300'}`} />
+        <span className={`h-2 w-2 rounded-full ${uncategorizedOnly ? 'bg-amber-500' : 'bg-slate-300'}`} />
         Uncategorized only
       </button>
 
       {hasActiveFilters && (
-        <button onClick={clearAll} className="text-sm text-gray-400 hover:text-gray-600 underline">
+        <button onClick={clearAll} className="text-sm text-slate-400 hover:text-slate-600 underline">
           Clear filters
         </button>
       )}

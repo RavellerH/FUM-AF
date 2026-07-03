@@ -38,7 +38,7 @@ export function CategoryManager() {
 
   return (
     <div>
-      <h2 className="mb-4 text-base font-semibold text-gray-800">Categories</h2>
+      <h2 className="mb-4 text-base font-semibold text-slate-800">Categories</h2>
       {error && <div className="mb-3"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
 
       <div className="mb-4 flex gap-2">
@@ -48,12 +48,12 @@ export function CategoryManager() {
           value={newName}
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
         />
         <button
           onClick={handleAdd}
           disabled={adding || !newName.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
           {adding ? <Spinner size="sm" /> : 'Add'}
         </button>
@@ -62,13 +62,13 @@ export function CategoryManager() {
       {loading ? (
         <div className="flex justify-center py-8"><Spinner /></div>
       ) : (
-        <ul className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
           {categories.map(c => (
             <li key={c.id} className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm text-gray-700">{c.name}</span>
+              <span className="text-sm text-slate-700">{c.name}</span>
               <button
                 onClick={() => handleDelete(c.id)}
-                className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-500"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -77,7 +77,7 @@ export function CategoryManager() {
             </li>
           ))}
           {!categories.length && (
-            <li className="px-4 py-8 text-center text-sm text-gray-400">No categories yet.</li>
+            <li className="px-4 py-8 text-center text-sm text-slate-400">No categories yet.</li>
           )}
         </ul>
       )}
