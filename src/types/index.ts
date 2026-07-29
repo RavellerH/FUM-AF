@@ -2,7 +2,7 @@ export type TransactionType = 'income' | 'expense';
 
 export interface Transaction {
   id: string;
-  user_id: string;
+  user_id?: string; // legacy field from Supabase era, not used in new storage
   date: string;
   amount: number;
   currency: string;
@@ -15,7 +15,6 @@ export interface Transaction {
 
 export interface Summary {
   id: string;
-  user_id: string;
   month: string;
   total_income: number;
   total_expense: number;
@@ -25,7 +24,6 @@ export interface Summary {
 
 export interface Category {
   id: string;
-  user_id: string;
   name: string;
 }
 
@@ -40,7 +38,7 @@ export interface ParsedTransaction {
 
 export interface Rule {
   id: string;
-  user_id: string;
+  user_id?: string; // legacy field from Supabase era, not used in new storage
   pattern: string;
   category: string;
   type: TransactionType | null;

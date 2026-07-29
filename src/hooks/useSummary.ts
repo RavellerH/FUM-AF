@@ -1,51 +1,33 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
 import { EXCLUDE_FROM_EXPENSE, INCOME_CATEGORIES } from '../lib/constants';
-import type { Summary, Transaction } from '../types';
+import type { Summary, Transaction } from '../types/index';
 
+// Summaries are no longer persisted — they are computed in-memory from transactions.
+// This hook retains the same interface so callers need minimal changes.
 export function useSummary() {
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
 
-  const fetchSummary = useCallback(async (month: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('summaries')
-        .select('*')
-        .eq('month', month)
-        .maybeSingle();
-      if (error) throw error;
-      setSummary(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load summary');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // No-op: summary is derived from transactions which callers already hold
+  const fetchSummary = useCallback(async (_month: string) => {}, []);
 
-  const buildAndUpsertSummary = useCallback(async (month: string, userId: string) => {
-    const [year, mon] = month.split('-');
-    const start = `${year}-${mon}-01`;
-    const lastDay = new Date(Date.UTC(Number(year), Number(mon), 0)).getUTCDate();
-    const end = `${year}-${mon}-${String(lastDay).padStart(2, '0')}`;
-
-    const { data: txns, error: txErr } = await supabase
-      .from('transactions')
-      .select('*')
-      .gte('date', start)
-      .lte('date', end);
-    if (txErr) throw txErr;
-
-    const rows = (txns ?? []) as Transaction[];
+  // Compute summary from a set of transactions and set it in state.
+  // The userId param is kept for call-site compatibility but is not used.
+  const buildAndUpsertSummary = useCallback(async (
+    month: string,
+    _userIdOrTxns?: string | Transaction[],
+    txnsArg?: Transaction[],
+  ): Promise<Summary> => {
+    // Accept either (month, userId) legacy or (month, transactions) new form
+    const rows: Transaction[] = Array.isArray(_userIdOrTxns)
+      ? _userIdOrTxns
+      : (txnsArg ?? []);
 
     const total_income = rows
       .filter(t => t.type === 'income' && INCOME_CATEGORIES.includes(t.category))
       .reduce((s, t) => s + t.amount, 0);
 
-    // Exclude passthrough categories from expenses
     const total_expense = rows
       .filter(t => t.type === 'expense' && !EXCLUDE_FROM_EXPENSE.includes(t.category))
       .reduce((s, t) => s + t.amount, 0);
@@ -57,14 +39,16 @@ export function useSummary() {
       return acc;
     }, {});
 
-    const { data, error } = await supabase
-      .from('summaries')
-      .upsert({ user_id: userId, month, total_income, total_expense, by_category }, { onConflict: 'user_id,month' })
-      .select()
-      .single();
-    if (error) throw error;
-    setSummary(data);
-    return data as Summary;
+    const result: Summary = {
+      id: month,
+      month,
+      total_income,
+      total_expense,
+      by_category,
+      created_at: new Date().toISOString(),
+    };
+    setSummary(result);
+    return result;
   }, []);
 
   return { summary, loading, error, fetchSummary, buildAndUpsertSummary };

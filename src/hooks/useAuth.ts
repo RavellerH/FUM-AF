@@ -1,37 +1,45 @@
-import { useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { useEffect, useState, useCallback } from 'react';
+import { ghVerifyPat } from '../lib/github';
 
-const ALLOWED_EMAIL = (import.meta.env.VITE_ALLOWED_EMAIL as string | undefined)?.toLowerCase();
+const PAT_KEY = 'gh_pat';
 
-export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+export interface AuthState {
+  pat: string;
+  verified: boolean;
+  loading: boolean;
+  signIn: (pat: string) => Promise<void>;
+  signOut: () => void;
+}
+
+export function useAuth(): AuthState {
+  const [pat, setPat] = useState<string>(() => localStorage.getItem(PAT_KEY) ?? '');
+  const [verified, setVerified] = useState(false);
+  const [loading, setLoading] = useState(!!localStorage.getItem(PAT_KEY));
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    const stored = localStorage.getItem(PAT_KEY);
+    if (!stored) { setLoading(false); return; }
+    ghVerifyPat(stored).then(ok => {
+      setVerified(ok);
+      if (!ok) localStorage.removeItem(PAT_KEY);
       setLoading(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => listener.subscription.unsubscribe();
+    }).catch(() => { setVerified(false); setLoading(false); });
   }, []);
 
-  const signIn = () =>
-    supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + import.meta.env.BASE_URL,
-      },
-    });
+  const signIn = useCallback(async (newPat: string) => {
+    const trimmed = newPat.trim();
+    const ok = await ghVerifyPat(trimmed);
+    if (!ok) throw new Error('Invalid token — verify the PAT has repo scope and try again');
+    localStorage.setItem(PAT_KEY, trimmed);
+    setPat(trimmed);
+    setVerified(true);
+  }, []);
 
-  const signOut = () => supabase.auth.signOut();
+  const signOut = useCallback(() => {
+    localStorage.removeItem(PAT_KEY);
+    setPat('');
+    setVerified(false);
+  }, []);
 
-  // Client-side gate is UX only — the DB whitelist trigger is the real guard.
-  // Enforced only when VITE_ALLOWED_EMAIL is set, so a missing secret can't lock you out.
-  const isWhitelisted = !ALLOWED_EMAIL || session?.user?.email?.toLowerCase() === ALLOWED_EMAIL;
-
-  return { session, loading, signIn, signOut, isWhitelisted };
+  return { pat, verified, loading, signIn, signOut };
 }

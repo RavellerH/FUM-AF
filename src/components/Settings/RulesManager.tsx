@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRules } from '../../hooks/useRules';
 import type { TransactionType } from '../../types';
 import { useCategories } from '../../hooks/useCategories';
-import { useAuth } from '../../hooks/useAuth';
 
 export function RulesManager() {
-  const { session } = useAuth();
   const { rules, loading, fetchRules, addRule, deleteRule, applyRulesToUncategorized } = useRules();
   const { categories, fetchCategories } = useCategories();
 
@@ -18,10 +16,9 @@ export function RulesManager() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session) return;
     fetchRules();
     fetchCategories();
-  }, [session]);
+  }, []);
 
   const categoryNames = categories.map(c => c.name);
 

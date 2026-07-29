@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { Spinner } from '../shared/Spinner';
 import { fmt, fmtPct } from '../../lib/format';
@@ -42,7 +41,6 @@ function SectorBar({ sectors }: { sectors: Record<string, number> }) {
 }
 
 export function InvestmentPage() {
-  const { session } = useAuth();
   const { portfolio, loading, error, fetchPortfolio, savePortfolio } = usePortfolio();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<PortfolioData | null>(null);
@@ -50,9 +48,9 @@ export function InvestmentPage() {
   const [usdIdr, setUsdIdr] = useState<number | null>(null);
 
   useEffect(() => {
-    if (session) fetchPortfolio();
+    fetchPortfolio();
     fetchUsdIdr().then(setUsdIdr).catch(() => {});
-  }, [session]);
+  }, []);
 
   const startEditing = () => {
     if (!portfolio) return;
@@ -61,10 +59,10 @@ export function InvestmentPage() {
   };
 
   const handleSave = async () => {
-    if (!draft || !session) return;
+    if (!draft) return;
     setSaving(true);
     try {
-      await savePortfolio(session.user.id, draft);
+      await savePortfolio(undefined, draft);
       setEditing(false);
     } catch (e) {
       console.error(e);

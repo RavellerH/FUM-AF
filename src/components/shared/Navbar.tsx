@@ -38,7 +38,7 @@ function Logo() {
 }
 
 export function Navbar() {
-  const { session, signOut } = useAuth();
+  const { signOut } = useAuth();
 
   return (
     <>
@@ -68,7 +68,7 @@ export function Navbar() {
           </div>
 
           <div className="ml-auto flex items-center gap-3 md:ml-0">
-            <span className="hidden text-xs text-slate-400 lg:inline">{session?.user?.email}</span>
+            <span className="hidden text-xs text-slate-400 lg:inline">FinanceAF</span>
             <button
               onClick={() => signOut()}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50"

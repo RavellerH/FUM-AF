@@ -1,33 +1,59 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import type { Category } from '../types';
+import { ghGet, ghPut } from '../lib/github';
+import { useAuth } from './useAuth';
+import type { Category } from '../types/index';
+
+const PATH = 'categories.md';
+
+const DEFAULT_CATEGORIES = [
+  'Cash', 'Entertainment', 'Family', 'Food & Dining', 'Healthcare',
+  'Housing', 'Income', 'Insurance', 'Investment', 'Reimbursable',
+  'Reimbursement', 'Salary', 'Shopping', 'Third-Party Transfer',
+  'Transport', 'Uncategorized', 'Utilities',
+];
+
+function namesToCategories(names: string[]): Category[] {
+  return names.map(name => ({ id: name, name }));
+}
+
+async function loadCategories(pat: string): Promise<string[]> {
+  const data = await ghGet<string[]>(pat, PATH);
+  if (data) return data;
+  // First access — seed defaults
+  await ghPut(pat, PATH, DEFAULT_CATEGORIES);
+  return DEFAULT_CATEGORIES;
+}
 
 export function useCategories() {
+  const { pat } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from('categories').select('*').order('name');
-    setCategories(data ?? []);
-    setLoading(false);
-  }, []);
+    try {
+      const names = await loadCategories(pat);
+      setCategories(namesToCategories(names.sort()));
+    } finally {
+      setLoading(false);
+    }
+  }, [pat]);
 
-  const addCategory = useCallback(async (name: string, userId: string) => {
-    const { data, error } = await supabase
-      .from('categories')
-      .insert({ name, user_id: userId })
-      .select()
-      .single();
-    if (error) throw error;
-    setCategories(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
-  }, []);
+  const addCategory = useCallback(async (name: string, _userId?: string) => {
+    const names = await loadCategories(pat);
+    if (names.includes(name)) return;
+    const updated = [...names, name].sort();
+    await ghPut(pat, PATH, updated);
+    setCategories(namesToCategories(updated));
+  }, [pat]);
 
   const deleteCategory = useCallback(async (id: string) => {
-    const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (error) throw error;
-    setCategories(prev => prev.filter(c => c.id !== id));
-  }, []);
+    // id === name for GitHub-backed categories
+    const names = await loadCategories(pat);
+    const updated = names.filter(n => n !== id);
+    await ghPut(pat, PATH, updated);
+    setCategories(namesToCategories(updated));
+  }, [pat]);
 
   return { categories, loading, fetchCategories, addCategory, deleteCategory };
 }
