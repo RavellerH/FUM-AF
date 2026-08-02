@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { ghGet, ghPut, ghList } from '../lib/github';
+import { useAuth } from './useAuth';
 
 export interface StockHolding {
   symbol: string;
@@ -37,7 +38,11 @@ export interface PortfolioSnapshot {
   snapshot_at: string;
 }
 
+const CURRENT_PATH = 'portfolio.md';
+const HISTORY_DIR = 'portfolio_history';
+
 export function usePortfolio() {
+  const { pat } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,9 +51,8 @@ export function usePortfolio() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.from('portfolio').select('data').maybeSingle();
-      if (error) throw error;
-      setPortfolio(data?.data ?? null);
+      const data = await ghGet<PortfolioData>(CURRENT_PATH);
+      setPortfolio(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load portfolio');
     } finally {
@@ -57,31 +61,25 @@ export function usePortfolio() {
   }, []);
 
   const fetchPreviousSnapshot = useCallback(async (): Promise<PortfolioSnapshot | null> => {
-    const { data, error } = await supabase
-      .from('portfolio_history')
-      .select('data, snapshot_at')
-      .order('snapshot_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error) throw error;
-    return (data as PortfolioSnapshot | null) ?? null;
+    const files = await ghList(HISTORY_DIR);
+    if (!files.length) return null;
+    const latest = files.filter(f => f.endsWith('.md')).sort().at(-1);
+    if (!latest) return null;
+    const data = await ghGet<PortfolioData>(`${HISTORY_DIR}/${latest}`);
+    if (!data) return null;
+    return { data, snapshot_at: latest.replace('.md', '') };
   }, []);
 
-  const savePortfolio = useCallback(async (userId: string, data: PortfolioData) => {
+  const savePortfolio = useCallback(async (_userId: string | undefined, data: PortfolioData) => {
     data.updated_at = new Date().toISOString().slice(0, 10);
-
-    // Archive the current state before overwriting, so "vs last time" always has a baseline.
-    const { data: existing } = await supabase.from('portfolio').select('data').maybeSingle();
-    if (existing?.data) {
-      await supabase.from('portfolio_history').insert({ user_id: userId, data: existing.data });
+    const existing = await ghGet<PortfolioData>(CURRENT_PATH);
+    if (existing) {
+      const snapshotName = `${existing.updated_at ?? new Date().toISOString().slice(0, 10)}.md`;
+      await ghPut(pat, `${HISTORY_DIR}/${snapshotName}`, existing);
     }
-
-    const { error } = await supabase
-      .from('portfolio')
-      .upsert({ user_id: userId, data, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-    if (error) throw error;
+    await ghPut(pat, CURRENT_PATH, data);
     setPortfolio(data);
-  }, []);
+  }, [pat]);
 
   return { portfolio, loading, error, fetchPortfolio, savePortfolio, fetchPreviousSnapshot };
 }

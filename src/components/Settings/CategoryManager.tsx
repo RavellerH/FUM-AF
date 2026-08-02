@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { useCategories } from '../../hooks/useCategories';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
 
 export function CategoryManager() {
-  const { session } = useAuth();
   const { categories, loading, fetchCategories, addCategory, deleteCategory } = useCategories();
   const [newName, setNewName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -15,11 +13,11 @@ export function CategoryManager() {
 
   const handleAdd = async () => {
     const name = newName.trim();
-    if (!name || !session) return;
+    if (!name) return;
     setAdding(true);
     setError(null);
     try {
-      await addCategory(name, session.user.id);
+      await addCategory(name);
       setNewName('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to add category');

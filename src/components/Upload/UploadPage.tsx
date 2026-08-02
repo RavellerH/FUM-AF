@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
 import { fileToText, parseTransactionsWithGemini } from '../../lib/gemini';
@@ -22,7 +21,6 @@ function isPasswordError(e: unknown) {
 }
 
 export function UploadPage() {
-  const { session } = useAuth();
   const { insertTransactions } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
   const { rules, fetchRules } = useRules();
@@ -93,13 +91,13 @@ export function UploadPage() {
   };
 
   const handleConfirm = async () => {
-    if (!session || !file || !parsed.length) return;
+    if (!file || !parsed.length) return;
     setStep('saving');
     setError(null);
     try {
-      await insertTransactions(parsed, file.name, session.user.id);
+      await insertTransactions(parsed, file.name);
       const months = [...new Set(parsed.map(t => t.date.slice(0, 7)))];
-      await Promise.all(months.map(m => buildAndUpsertSummary(m, session.user.id)));
+      await Promise.all(months.map(m => buildAndUpsertSummary(m)));
       setStep('done');
       setTimeout(() => navigate('/transactions'), 1200);
     } catch (e) {

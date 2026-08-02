@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
-import { useSummary } from '../../hooks/useSummary';
-import { supabase } from '../../lib/supabase';
 import { EXCLUDE_FROM_EXPENSE, INCOME_CATEGORIES, UNCATEGORIZED } from '../../lib/constants';
 import { fmt } from '../../lib/format';
 import { MonthSelector } from './MonthSelector';
@@ -50,35 +47,23 @@ function computeStats(txns: Transaction[]) {
 }
 
 export function DashboardPage() {
-  const { session } = useAuth();
-  const { transactions, fetchTransactions } = useTransactions();
-  const { loading, error, fetchSummary, buildAndUpsertSummary } = useSummary();
+  const { transactions, loading, error, fetchTransactions, getAvailableMonths } = useTransactions();
   const [months, setMonths] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth());
   const [hasData, setHasData] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!session) return;
-    supabase
-      .from('transactions')
-      .select('date')
-      .order('date', { ascending: false })
-      .then(({ data }) => {
-        if (!data) return;
-        const unique = [...new Set(data.map(r => r.date.slice(0, 7)))];
-        setMonths(unique);
-        setHasData(unique.length > 0);
-        if (unique.length && !unique.includes(selectedMonth)) setSelectedMonth(unique[0]);
-      });
-  }, [session]);
+    getAvailableMonths().then(avail => {
+      setMonths(avail);
+      setHasData(avail.length > 0);
+      if (avail.length && !avail.includes(selectedMonth)) setSelectedMonth(avail[0]);
+    });
+  }, []);
 
   useEffect(() => {
-    if (!selectedMonth || !session) return;
+    if (!selectedMonth) return;
     fetchTransactions({ month: selectedMonth });
-    fetchSummary(selectedMonth).then(() => {
-      buildAndUpsertSummary(selectedMonth, session.user.id).catch(() => {});
-    });
-  }, [selectedMonth, session]);
+  }, [selectedMonth]);
 
   const stats = computeStats(transactions);
   const expenseAfterAid = stats.expense - stats.aid;

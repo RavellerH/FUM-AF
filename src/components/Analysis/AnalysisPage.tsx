@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { supabase } from '../../lib/supabase';
+import { useTransactions } from '../../hooks/useTransactions';
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { generateSpendingInsights } from '../../lib/gemini';
 import type { AIInsight } from '../../lib/gemini';
@@ -202,10 +201,9 @@ function computeInvestmentInsights(
 }
 
 export function AnalysisPage() {
-  const { session } = useAuth();
+  const { transactions: txns, fetchTransactions } = useTransactions();
   const { portfolio, fetchPortfolio, fetchPreviousSnapshot } = usePortfolio();
   const [prevSnapshot, setPrevSnapshot] = useState<PortfolioSnapshot | null>(null);
-  const [txns, setTxns] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [usdIdr, setUsdIdr] = useState<number>(FALLBACK_USD_IDR);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
@@ -233,13 +231,10 @@ export function AnalysisPage() {
   // NB: doesn't set loading=true itself — initial state is true, and the
   // Refresh button sets it before calling, so the effect stays setState-free.
   const load = async () => {
-    if (!session) return;
-    const [{ data }, rate] = await Promise.all([
-      supabase.from('transactions').select('*').order('date'),
+    const [txnData, rate] = await Promise.all([
+      fetchTransactions({}),
       fetchUsdIdr(),
     ]);
-    const txnData = (data ?? []) as Transaction[];
-    setTxns(txnData);
     setUsdIdr(rate);
     fetchPortfolio();
     fetchPreviousSnapshot().then(setPrevSnapshot).catch(() => setPrevSnapshot(null));
@@ -250,7 +245,7 @@ export function AnalysisPage() {
 
   // Data fetch on mount; every setState in load() happens after an await.
   // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, [session]);
+  useEffect(() => { load(); }, []);
 
   const months = useMemo(() => buildMonthlyStats(txns), [txns]);
 

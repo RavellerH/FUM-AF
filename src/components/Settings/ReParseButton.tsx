@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useSummary } from '../../hooks/useSummary';
-import { supabase } from '../../lib/supabase';
 import { parseTransactionsWithGemini } from '../../lib/gemini';
 import { useRules, applyRules } from '../../hooks/useRules';
 import { Spinner } from '../shared/Spinner';
 import { ErrorBanner } from '../shared/ErrorBanner';
 
 export function ReParseButton() {
-  const { session } = useAuth();
-  const { insertTransactions } = useTransactions();
+  const { insertTransactions, getSourceFiles, getTransactionsBySourceFile, deleteBySourceFile } = useTransactions();
   const { buildAndUpsertSummary } = useSummary();
   const { rules, fetchRules } = useRules();
   const [sourceFiles, setSourceFiles] = useState<string[]>([]);
@@ -19,44 +16,30 @@ export function ReParseButton() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session) return;
     fetchRules();
-    supabase
-      .from('transactions')
-      .select('source_file')
-      .not('source_file', 'is', null)
-      .then(({ data }) => {
-        if (!data) return;
-        const unique = [...new Set(data.map(r => r.source_file as string))].filter(Boolean);
-        setSourceFiles(unique);
-        if (unique.length) setSelected(unique[0]);
-      });
-  }, [session]);
+    getSourceFiles().then(files => {
+      setSourceFiles(files);
+      if (files.length) setSelected(files[0]);
+    });
+  }, []);
 
   const handleReParse = async () => {
-    if (!selected || !session) return;
+    if (!selected) return;
     setStatus('running');
     setError(null);
     try {
-      // Fetch all transactions for that source file as CSV-like text
-      const { data } = await supabase
-        .from('transactions')
-        .select('date,amount,currency,type,category,description')
-        .eq('source_file', selected);
-      if (!data?.length) throw new Error('No transactions found for this source file.');
+      const existing = await getTransactionsBySourceFile(selected);
+      if (!existing.length) throw new Error('No transactions found for this source file.');
       const csvText = [
         'date,amount,currency,type,category,description',
-        ...data.map(r => `${r.date},${r.amount},${r.currency},${r.type},${r.category},${r.description}`),
+        ...existing.map(r => `${r.date},${r.amount},${r.currency},${r.type},${r.category},${r.description ?? ''}`),
       ].join('\n');
       const parsed = applyRules(await parseTransactionsWithGemini(csvText), rules);
       if (!parsed.length) throw new Error('Gemini returned no transactions — aborting so nothing is deleted.');
-      // Delete existing transactions for that source file
-      await supabase.from('transactions').delete().eq('source_file', selected);
-      // Re-insert
-      await insertTransactions(parsed, selected, session.user.id);
-      // Rebuild summaries
+      await deleteBySourceFile(selected);
+      await insertTransactions(parsed, selected);
       const months = [...new Set(parsed.map(t => t.date.slice(0, 7)))];
-      await Promise.all(months.map(m => buildAndUpsertSummary(m, session.user.id)));
+      await Promise.all(months.map(m => buildAndUpsertSummary(m)));
       setStatus('done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Re-parse failed');

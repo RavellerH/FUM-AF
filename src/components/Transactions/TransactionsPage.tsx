@@ -1,10 +1,8 @@
 import { Fragment, useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { useCategories } from '../../hooks/useCategories';
 import { useRules } from '../../hooks/useRules';
-import { supabase } from '../../lib/supabase';
 import { TransactionFilters } from './TransactionFilters';
 import type { PageFilters } from './TransactionFilters';
 import { TransactionRow } from './TransactionRow';
@@ -40,8 +38,7 @@ function groupByDate(txns: Transaction[]) {
 }
 
 export function TransactionsPage() {
-  const { session } = useAuth();
-  const { transactions, loading, error, fetchTransactions, updateTransaction, deleteTransaction } = useTransactions();
+  const { transactions, loading, error, fetchTransactions, updateTransaction, deleteTransaction, getAvailableMonths } = useTransactions();
   const { categories, fetchCategories } = useCategories();
   const { addRule } = useRules();
   const [months, setMonths] = useState<string[]>([]);
@@ -80,18 +77,10 @@ export function TransactionsPage() {
   }, [filters, search, uncategorizedOnly, sortKey, sortDir]);
 
   useEffect(() => {
-    if (!session) return;
     fetchCategories();
     fetchTransactions({});
-    supabase
-      .from('transactions')
-      .select('date')
-      .order('date', { ascending: false })
-      .then(({ data }) => {
-        if (!data) return;
-        setMonths([...new Set(data.map(r => r.date.slice(0, 7)))]);
-      });
-  }, [session]);
+    getAvailableMonths().then(avail => setMonths(avail));
+  }, []);
 
   const categoryNames = categories.map(c => c.name);
 
