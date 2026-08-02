@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
+import { PASSWORD_SESSION_KEY } from '../../lib/passwordSession';
 
 const HASH = 'd6a401483d6023d596201d7185b2d442f5438e305ee54553a8a7d912b459b297';
-const SESSION_KEY = 'fum_unlocked';
 
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -9,13 +9,13 @@ async function sha256(text: string): Promise<string> {
 }
 
 export function PasswordGate({ children }: { children: ReactNode }) {
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(PASSWORD_SESSION_KEY) === '1');
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
-    if (unlocked) sessionStorage.setItem(SESSION_KEY, '1');
+    if (unlocked) sessionStorage.setItem(PASSWORD_SESSION_KEY, '1');
   }, [unlocked]);
 
   const handleSubmit = async (e: React.FormEvent) => {

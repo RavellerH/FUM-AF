@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { clearPasswordSession } from '../../lib/passwordSession';
 
 interface NavItem {
   to: string;
@@ -37,9 +37,12 @@ function Logo() {
   );
 }
 
-export function Navbar() {
-  const { signOut } = useAuth();
+function handleSignOut() {
+  clearPasswordSession();
+  window.location.reload();
+}
 
+export function Navbar() {
   return (
     <>
       {/* Top bar */}
@@ -70,7 +73,7 @@ export function Navbar() {
           <div className="ml-auto flex items-center gap-3 md:ml-0">
             <span className="hidden text-xs text-slate-400 lg:inline">FinanceAF</span>
             <button
-              onClick={() => signOut()}
+              onClick={handleSignOut}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50"
             >
               Sign out

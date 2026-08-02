@@ -9,21 +9,11 @@ export function useSummary() {
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
 
-  // No-op: summary is derived from transactions which callers already hold
-  const fetchSummary = useCallback(async (_month: string) => {}, []);
-
   // Compute summary from a set of transactions and set it in state.
-  // The userId param is kept for call-site compatibility but is not used.
   const buildAndUpsertSummary = useCallback(async (
     month: string,
-    _userIdOrTxns?: string | Transaction[],
-    txnsArg?: Transaction[],
+    rows: Transaction[] = [],
   ): Promise<Summary> => {
-    // Accept either (month, userId) legacy or (month, transactions) new form
-    const rows: Transaction[] = Array.isArray(_userIdOrTxns)
-      ? _userIdOrTxns
-      : (txnsArg ?? []);
-
     const total_income = rows
       .filter(t => t.type === 'income' && INCOME_CATEGORIES.includes(t.category))
       .reduce((s, t) => s + t.amount, 0);
@@ -51,5 +41,5 @@ export function useSummary() {
     return result;
   }, []);
 
-  return { summary, loading, error, fetchSummary, buildAndUpsertSummary };
+  return { summary, loading, error, buildAndUpsertSummary };
 }

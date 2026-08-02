@@ -36,7 +36,7 @@ export function useCategories() {
     }
   }, []);
 
-  const addCategory = useCallback(async (name: string, _userId?: string) => {
+  const addCategory = useCallback(async (name: string) => {
     const names = await loadCategories();
     if (names.includes(name)) return;
     const updated = [...names, name].sort();
