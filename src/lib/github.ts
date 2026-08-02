@@ -1,6 +1,9 @@
-const DATA_OWNER = (import.meta.env.VITE_DATA_OWNER as string | undefined) ?? 'ravellerh';
-const DATA_REPO = (import.meta.env.VITE_DATA_REPO as string | undefined) ?? 'fum-af-data';
+const OWNER = 'ravellerh';
+const REPO = 'FUM-AF';
+const BRANCH = 'main';
+const DIR = 'data';
 const API = 'https://api.github.com';
+const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${DIR}`;
 
 function ghHeaders(pat: string) {
   return {
@@ -10,7 +13,6 @@ function ghHeaders(pat: string) {
   };
 }
 
-// Encode string → base64, handling full Unicode (Indonesian descriptions, etc.)
 function toBase64(str: string): string {
   const bytes = new TextEncoder().encode(str);
   let bin = '';
@@ -18,14 +20,6 @@ function toBase64(str: string): string {
   return btoa(bin);
 }
 
-// Decode base64 → string, handling full Unicode
-function fromBase64(b64: string): string {
-  const bin = atob(b64.replace(/\n/g, ''));
-  const bytes = new Uint8Array([...bin].map(c => c.charCodeAt(0)));
-  return new TextDecoder().decode(bytes);
-}
-
-// File format: JSON data wrapped in ---json / --- fences inside a markdown file
 function serialize(data: unknown): string {
   return `---json\n${JSON.stringify(data, null, 2)}\n---\n`;
 }
@@ -36,21 +30,19 @@ function deserialize<T>(content: string): T {
   return JSON.parse(m[1]) as T;
 }
 
-// GET a file from the data repo. Returns null if not found.
-export async function ghGet<T>(pat: string, path: string): Promise<T | null> {
-  const r = await fetch(`${API}/repos/${DATA_OWNER}/${DATA_REPO}/contents/${path}`, {
-    headers: ghHeaders(pat),
+// Read a file from the public repo — no PAT needed.
+export async function ghGet<T>(path: string): Promise<T | null> {
+  const r = await fetch(`${RAW}/${path}?_=${Date.now()}`, {
+    headers: { 'Cache-Control': 'no-cache' },
   });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`GitHub read error ${r.status} on ${path}`);
-  const json = await r.json();
-  return deserialize<T>(fromBase64(json.content));
+  return deserialize<T>(await r.text());
 }
 
-// PUT a file into the data repo. Fetches current SHA automatically so callers never need it.
+// Write a file — PAT required.
 export async function ghPut(pat: string, path: string, data: unknown): Promise<void> {
-  const url = `${API}/repos/${DATA_OWNER}/${DATA_REPO}/contents/${path}`;
-  // Fetch current SHA (required by GitHub API when updating an existing file)
+  const url = `${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`;
   const existingRes = await fetch(url, { headers: ghHeaders(pat) });
   const sha = existingRes.ok ? (await existingRes.json()).sha as string : undefined;
 
@@ -69,10 +61,10 @@ export async function ghPut(pat: string, path: string, data: unknown): Promise<v
   }
 }
 
-// List file names in a directory. Returns [] if directory doesn't exist.
-export async function ghList(pat: string, path: string): Promise<string[]> {
-  const r = await fetch(`${API}/repos/${DATA_OWNER}/${DATA_REPO}/contents/${path}`, {
-    headers: ghHeaders(pat),
+// List a directory in the public repo — no PAT needed (60 req/hr unauthenticated, enough for personal use).
+export async function ghList(path: string): Promise<string[]> {
+  const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`, {
+    headers: { Accept: 'application/vnd.github.v3+json' },
   });
   if (r.status === 404) return [];
   if (!r.ok) throw new Error(`GitHub list error ${r.status} on ${path}`);
@@ -80,7 +72,7 @@ export async function ghList(pat: string, path: string): Promise<string[]> {
   return items.map(i => i.name);
 }
 
-// Verify that a PAT is valid by hitting /user
+// Validate a PAT — used in Settings when the user saves a new token.
 export async function ghVerifyPat(pat: string): Promise<boolean> {
   const r = await fetch(`${API}/user`, {
     headers: { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json' },

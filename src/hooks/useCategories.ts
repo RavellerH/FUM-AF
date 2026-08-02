@@ -6,22 +6,19 @@ import type { Category } from '../types/index';
 const PATH = 'categories.md';
 
 const DEFAULT_CATEGORIES = [
-  'Cash', 'Entertainment', 'Family', 'Food & Dining', 'Healthcare',
-  'Housing', 'Income', 'Insurance', 'Investment', 'Reimbursable',
-  'Reimbursement', 'Salary', 'Shopping', 'Third-Party Transfer',
-  'Transport', 'Uncategorized', 'Utilities',
+  'Admin Fee', 'Cash', 'Entertainment', 'Family', 'Food & Dining', 'Freelance',
+  'Healthcare', 'Home Maintenance', 'Household', 'Housing', 'Income',
+  'Insurance', 'Investment', 'Loan', 'Refund', 'Reimbursable',
+  'Reimbursement', 'Salary', 'Services', 'Shopping', 'Third-Party Transfer',
+  'Transport', 'Uncategorized', 'Utilities', 'Work',
 ];
 
 function namesToCategories(names: string[]): Category[] {
   return names.map(name => ({ id: name, name }));
 }
 
-async function loadCategories(pat: string): Promise<string[]> {
-  const data = await ghGet<string[]>(pat, PATH);
-  if (data) return data;
-  // First access — seed defaults
-  await ghPut(pat, PATH, DEFAULT_CATEGORIES);
-  return DEFAULT_CATEGORIES;
+async function loadCategories(): Promise<string[]> {
+  return (await ghGet<string[]>(PATH)) ?? DEFAULT_CATEGORIES;
 }
 
 export function useCategories() {
@@ -32,15 +29,15 @@ export function useCategories() {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      const names = await loadCategories(pat);
+      const names = await loadCategories();
       setCategories(namesToCategories(names.sort()));
     } finally {
       setLoading(false);
     }
-  }, [pat]);
+  }, []);
 
   const addCategory = useCallback(async (name: string, _userId?: string) => {
-    const names = await loadCategories(pat);
+    const names = await loadCategories();
     if (names.includes(name)) return;
     const updated = [...names, name].sort();
     await ghPut(pat, PATH, updated);
@@ -48,8 +45,7 @@ export function useCategories() {
   }, [pat]);
 
   const deleteCategory = useCallback(async (id: string) => {
-    // id === name for GitHub-backed categories
-    const names = await loadCategories(pat);
+    const names = await loadCategories();
     const updated = names.filter(n => n !== id);
     await ghPut(pat, PATH, updated);
     setCategories(namesToCategories(updated));

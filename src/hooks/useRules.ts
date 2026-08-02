@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ghGet, ghPut } from '../lib/github';
+import { ghGet, ghPut, ghList } from '../lib/github';
 import { useAuth } from './useAuth';
 import type { Rule, TransactionType, ParsedTransaction } from '../types/index';
 
@@ -16,8 +16,8 @@ export function applyRules(transactions: ParsedTransaction[], rules: Rule[]): Pa
   });
 }
 
-async function loadRules(pat: string): Promise<Rule[]> {
-  return (await ghGet<Rule[]>(pat, PATH)) ?? [];
+async function loadRules(): Promise<Rule[]> {
+  return (await ghGet<Rule[]>(PATH)) ?? [];
 }
 
 export function useRules() {
@@ -28,11 +28,11 @@ export function useRules() {
   const fetchRules = useCallback(async () => {
     setLoading(true);
     try {
-      setRules(await loadRules(pat));
+      setRules(await loadRules());
     } finally {
       setLoading(false);
     }
-  }, [pat]);
+  }, []);
 
   const addRule = useCallback(async (
     pattern: string,
@@ -40,7 +40,7 @@ export function useRules() {
     type?: TransactionType | null,
   ): Promise<Rule> => {
     const trimmed = pattern.trim();
-    const existing = await loadRules(pat);
+    const existing = await loadRules();
     const newRule: Rule = {
       id: crypto.randomUUID(),
       pattern: trimmed,
@@ -48,7 +48,6 @@ export function useRules() {
       type: type ?? null,
       created_at: new Date().toISOString(),
     };
-    // Replace any existing rule with the same pattern (upsert behaviour)
     const updated = [newRule, ...existing.filter(r => r.pattern.toLowerCase() !== trimmed.toLowerCase())];
     await ghPut(pat, PATH, updated);
     setRules(updated);
@@ -56,24 +55,22 @@ export function useRules() {
   }, [pat]);
 
   const deleteRule = useCallback(async (id: string) => {
-    const existing = await loadRules(pat);
+    const existing = await loadRules();
     const updated = existing.filter(r => r.id !== id);
     await ghPut(pat, PATH, updated);
     setRules(updated);
   }, [pat]);
 
-  // Retroactively apply rules to uncategorized transactions across all months.
-  // Returns the count of transactions updated.
   const applyRulesToUncategorized = useCallback(async (): Promise<number> => {
-    const allRules = await loadRules(pat);
+    const allRules = await loadRules();
     if (!allRules.length) return 0;
 
-    const files = await ghList(pat, 'transactions');
+    const files = await ghList('transactions');
     const months = files.filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
 
     let updated = 0;
     for (const month of months) {
-      const txns = (await ghGet<import('../types/index').Transaction[]>(pat, `transactions/${month}.md`)) ?? [];
+      const txns = (await ghGet<import('../types/index').Transaction[]>(`transactions/${month}.md`)) ?? [];
       let changed = false;
       const patched = txns.map(t => {
         if (t.category !== 'Uncategorized') return t;

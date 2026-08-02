@@ -51,36 +51,32 @@ export function usePortfolio() {
     setLoading(true);
     setError(null);
     try {
-      const data = await ghGet<PortfolioData>(pat, CURRENT_PATH);
+      const data = await ghGet<PortfolioData>(CURRENT_PATH);
       setPortfolio(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load portfolio');
     } finally {
       setLoading(false);
     }
-  }, [pat]);
+  }, []);
 
   const fetchPreviousSnapshot = useCallback(async (): Promise<PortfolioSnapshot | null> => {
-    const files = await ghList(pat, HISTORY_DIR);
+    const files = await ghList(HISTORY_DIR);
     if (!files.length) return null;
-    // Files named YYYY-MM-DD.md — take the latest
     const latest = files.filter(f => f.endsWith('.md')).sort().at(-1);
     if (!latest) return null;
-    const data = await ghGet<PortfolioData>(pat, `${HISTORY_DIR}/${latest}`);
+    const data = await ghGet<PortfolioData>(`${HISTORY_DIR}/${latest}`);
     if (!data) return null;
     return { data, snapshot_at: latest.replace('.md', '') };
-  }, [pat]);
+  }, []);
 
   const savePortfolio = useCallback(async (_userId: string | undefined, data: PortfolioData) => {
     data.updated_at = new Date().toISOString().slice(0, 10);
-
-    // Archive current state before overwriting
-    const existing = await ghGet<PortfolioData>(pat, CURRENT_PATH);
+    const existing = await ghGet<PortfolioData>(CURRENT_PATH);
     if (existing) {
       const snapshotName = `${existing.updated_at ?? new Date().toISOString().slice(0, 10)}.md`;
       await ghPut(pat, `${HISTORY_DIR}/${snapshotName}`, existing);
     }
-
     await ghPut(pat, CURRENT_PATH, data);
     setPortfolio(data);
   }, [pat]);
