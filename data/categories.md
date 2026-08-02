@@ -3,6 +3,7 @@
   "Admin Fee",
   "Cash",
   "Entertainment",
+  "Education",
   "Family",
   "Food & Dining",
   "Freelance",
