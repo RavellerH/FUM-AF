@@ -24,8 +24,13 @@ TypeScript, backed by Supabase (project ID: `loaqwetrozsvrwmhhfwk`, region: ap-s
 
 ## Memory system
 
-`public.claude_memory` is Claude's cross-session memory. It is RLS-locked
-(deny-all): the web app cannot touch it; only Claude via Supabase MCP can.
+Two layers:
+
+1. `CLAUDE_MEMORY.md` (repo root) — the always-works, file-based memory. Read
+   its Facts / Preferences / Outstanding at session start and append to its
+   Session log after meaningful work. This is the primary memory for this repo.
+2. `public.claude_memory` — Supabase cross-session memory. It is RLS-locked
+   (deny-all): the web app cannot touch it; only Claude via Supabase MCP can.
 
 ### Schema
 | column | notes |
