@@ -26,7 +26,7 @@
   },
   "crypto_investing": [
     {"platform": "Indodax", "symbol": "BTC", "amount": 0.006875, "value_idr": 5312000},
-    {"platform": "Indodax", "symbol": "USDT", "amount": 21.9, "value_idr": 354780},
+    {"platform": "Indodax", "symbol": "USDT", "amount": 21.9, "value_idr": 394910},
     {"platform": "FLOQ", "symbol": "HYPE", "amount": null, "value_idr": 560842}
   ],
   "savings": [{"name": "Deviota Jejaring Instrumen", "value_idr": 0}],
