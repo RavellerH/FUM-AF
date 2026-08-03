@@ -1,73 +1,35 @@
 ---json
 {
   "stocks": [
-    {
-      "symbol": "BMRI",
-      "lots": 3,
-      "value_idr": 1230000
-    },
-    {
-      "symbol": "BBRI",
-      "lots": 3,
-      "value_idr": 879000
-    },
-    {
-      "symbol": "SINI",
-      "lots": 1,
-      "value_idr": 747500
-    },
-    {
-      "symbol": "BBCA",
-      "lots": 1,
-      "value_idr": 625000
-    },
-    {
-      "symbol": "EMAS",
-      "lots": 1,
-      "value_idr": 615000
-    },
-    {
-      "symbol": "SSIA",
-      "lots": 1,
-      "value_idr": 161000
-    }
+    {"symbol": "BBCA", "lots": 1, "value_idr": 630000},
+    {"symbol": "BBRI", "lots": 3, "value_idr": 900000},
+    {"symbol": "BMRI", "lots": 3, "value_idr": 1251000},
+    {"symbol": "EMAS", "lots": 1, "value_idr": 665000},
+    {"symbol": "SINI", "lots": 1, "value_idr": 735000},
+    {"symbol": "SSIA", "lots": 1, "value_idr": 165000}
   ],
-  "stocks_pnl_idr": -1222207,
-  "stocks_pnl_pct": -22.3,
+  "stocks_pnl_idr": -1133707,
+  "stocks_pnl_pct": -19.36,
   "stocks_sectors": {
-    "Bank": 59.21,
-    "Industri": 21.93,
-    "Properti": 3.38,
-    "Barang Baku": 15.48
+    "Bank": 63.99,
+    "Industri": 16.91,
+    "Barang Baku": 15.30,
+    "Properti": 3.80
   },
   "crypto_trading": {
     "platform": "Hyperliquid",
-    "staking_hype": 1,
-    "earn_balance_usd": 0,
-    "total_equity_usd": 130,
+    "total_equity_usd": 126.65,
+    "trading_equity_usd": 126.65,
     "vault_equity_usd": 0,
-    "trading_equity_usd": 59
+    "earn_balance_usd": 0,
+    "staking_hype": 0.03087957
   },
   "crypto_investing": [
-    {
-      "amount": 0.00400297,
-      "symbol": "BTC",
-      "platform": "Indodax",
-      "value_idr": 4615608
-    },
-    {
-      "amount": 0.40342894,
-      "symbol": "HYPE",
-      "platform": "FLOQ CEX",
-      "value_idr": 492853
-    }
+    {"platform": "Indodax", "symbol": "BTC", "amount": 0.006875, "value_idr": 5312000},
+    {"platform": "Indodax", "symbol": "USDT", "amount": 21.9, "value_idr": 354780},
+    {"platform": "FLOQ", "symbol": "HYPE", "amount": null, "value_idr": 560842}
   ],
-  "savings": [
-    {
-      "name": "Deviota Jejaring Instrumen",
-      "value_idr": 0
-    }
-  ],
-  "updated_at": "2026-07-27"
+  "savings": [{"name": "Deviota Jejaring Instrumen", "value_idr": 0}],
+  "updated_at": "2026-08-03"
 }
 ---
