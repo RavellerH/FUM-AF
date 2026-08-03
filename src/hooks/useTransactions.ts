@@ -65,6 +65,7 @@ export function useTransactions() {
   const insertTransactions = useCallback(async (
     parsed: ParsedTransaction[],
     sourceFile: string,
+    _userId?: string,
   ) => {
     const byMonth = new Map<string, ParsedTransaction[]>();
     for (const t of parsed) {
