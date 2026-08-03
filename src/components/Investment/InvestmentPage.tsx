@@ -4,6 +4,7 @@ import { Spinner } from '../shared/Spinner';
 import { fmt, fmtPct } from '../../lib/format';
 import { fetchUsdIdr } from '../../lib/fx';
 import type { PortfolioData, StockHolding, CryptoInvesting } from '../../hooks/usePortfolio';
+import { PortfolioChart } from './PortfolioChart';
 
 // ---------- Edit helpers ----------
 function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -124,6 +125,9 @@ export function InvestmentPage() {
           )}
         </div>
       </div>
+
+      {/* History chart */}
+      <PortfolioChart currentPortfolio={p} />
 
       {/* Total summary */}
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
@@ -265,7 +269,7 @@ export function InvestmentPage() {
             <h2 className="mb-3 font-semibold text-slate-800">Crypto Investing</h2>
             <div className="flex flex-col gap-2">
               {p.crypto_investing.map((c, i) => (
-                <div key={c.platform} className="rounded-lg bg-orange-50 px-3 py-2.5">
+                <div key={c.platform + c.symbol} className="rounded-lg bg-orange-50 px-3 py-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-orange-700">{c.platform}</span>
                     <span className="text-xs text-orange-400">{c.symbol}</span>
@@ -287,7 +291,7 @@ export function InvestmentPage() {
                     </div>
                   ) : (
                     <div className="mt-0.5 flex items-end justify-between">
-                      <span className="text-xs text-orange-600">{c.amount.toFixed(8)} {c.symbol}</span>
+                      <span className="text-xs text-orange-600">{c.symbol === 'IDR' ? `Rp ${c.amount.toLocaleString('id-ID')}` : `${c.amount.toFixed(8)} ${c.symbol}`}</span>
                       <span className="font-semibold text-orange-800">{fmt(c.value_idr)} IDR</span>
                     </div>
                   )}

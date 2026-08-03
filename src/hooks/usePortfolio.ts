@@ -70,6 +70,18 @@ export function usePortfolio() {
     return { data, snapshot_at: latest.replace('.md', '') };
   }, []);
 
+  const fetchAllSnapshots = useCallback(async (): Promise<PortfolioSnapshot[]> => {
+    const files = await ghList(HISTORY_DIR);
+    const mdFiles = files.filter(f => f.endsWith('.md')).sort();
+    const results = await Promise.all(
+      mdFiles.map(async f => {
+        const data = await ghGet<PortfolioData>(`${HISTORY_DIR}/${f}`);
+        return data ? { data, snapshot_at: f.replace('.md', '') } : null;
+      })
+    );
+    return results.filter((r): r is PortfolioSnapshot => r !== null);
+  }, []);
+
   const savePortfolio = useCallback(async (_userId: string | undefined, data: PortfolioData) => {
     data.updated_at = new Date().toISOString().slice(0, 10);
     const existing = await ghGet<PortfolioData>(CURRENT_PATH);
@@ -81,5 +93,5 @@ export function usePortfolio() {
     setPortfolio(data);
   }, [pat]);
 
-  return { portfolio, loading, error, fetchPortfolio, savePortfolio, fetchPreviousSnapshot };
+  return { portfolio, loading, error, fetchPortfolio, savePortfolio, fetchPreviousSnapshot, fetchAllSnapshots };
 }

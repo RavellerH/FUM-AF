@@ -31,11 +31,10 @@ function deserialize<T>(content: string): T {
 }
 
 // Read a file from the public repo — no PAT needed.
-// Note: no custom request headers here — any non-safelisted header would trigger
-// a CORS preflight, and raw.githubusercontent.com answers OPTIONS with 403.
-// The `?_=${Date.now()}` cache-buster keeps reads fresh without needing headers.
 export async function ghGet<T>(path: string): Promise<T | null> {
-  const r = await fetch(`${RAW}/${path}?_=${Date.now()}`);
+  const r = await fetch(`${RAW}/${path}?_=${Date.now()}`, {
+    headers: { 'Cache-Control': 'no-cache' },
+  });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`GitHub read error ${r.status} on ${path}`);
   return deserialize<T>(await r.text());
