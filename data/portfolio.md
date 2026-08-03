@@ -18,16 +18,17 @@
   },
   "crypto_trading": {
     "platform": "Hyperliquid",
-    "total_equity_usd": 126.65,
-    "trading_equity_usd": 126.65,
+    "total_equity_usd": 117.42,
+    "trading_equity_usd": 117.42,
     "vault_equity_usd": 0,
     "earn_balance_usd": 0,
-    "staking_hype": 0.03087957
+    "staking_hype": 0
   },
   "crypto_investing": [
     {"platform": "Indodax", "symbol": "BTC", "amount": 0.0046875, "value_idr": 5312000},
     {"platform": "Indodax", "symbol": "USDT", "amount": 21.9, "value_idr": 394910},
-    {"platform": "FLOQ", "symbol": "HYPE", "amount": null, "value_idr": 560842}
+    {"platform": "FLOQ", "symbol": "HYPE", "amount": null, "value_idr": 560842},
+    {"platform": "FLOQ", "symbol": "HYPE", "amount": 0.03087957, "value_idr": 28905}
   ],
   "savings": [{"name": "Deviota Jejaring Instrumen", "value_idr": 0}],
   "updated_at": "2026-08-03"
