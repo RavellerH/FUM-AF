@@ -25,7 +25,7 @@
     "staking_hype": 0.03087957
   },
   "crypto_investing": [
-    {"platform": "Indodax", "symbol": "BTC", "amount": 0.006875, "value_idr": 5312000},
+    {"platform": "Indodax", "symbol": "BTC", "amount": 0.0046875, "value_idr": 5312000},
     {"platform": "Indodax", "symbol": "USDT", "amount": 21.9, "value_idr": 394910},
     {"platform": "FLOQ", "symbol": "HYPE", "amount": null, "value_idr": 560842}
   ],
