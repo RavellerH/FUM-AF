@@ -4,6 +4,7 @@ import { Spinner } from '../shared/Spinner';
 import { fmt, fmtPct } from '../../lib/format';
 import { fetchUsdIdr } from '../../lib/fx';
 import type { PortfolioData, StockHolding, CryptoInvesting } from '../../hooks/usePortfolio';
+import { PortfolioChart } from './PortfolioChart';
 
 // ---------- Edit helpers ----------
 function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -124,6 +125,9 @@ export function InvestmentPage() {
           )}
         </div>
       </div>
+
+      {/* History chart */}
+      <PortfolioChart currentPortfolio={p} />
 
       {/* Total summary */}
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
