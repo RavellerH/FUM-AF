@@ -22,6 +22,23 @@ is only reachable via Supabase MCP — this file always works).
   description suffix (or per-date user override) decides the category. The
   2026-07-30 FLIPTECH 510,328 ("btc invest") is an Investment buy for August —
   moved to `2026-08-01` as August expense.
+- As of 2026-08-02 the Mandiri account balance is **4,670,000**. August income
+  already in the account: the 6,000,000 NINA transfer (received 07-29, booked
+  to August). August file only holds carried-forward transactions so far.
+- BPJS Kesehatan Keluarga is paid on TWO accounts: main
+  `8988800199092194` = **450,000/mo** and secondary `0000001454070069` =
+  70,000/mo (520,000 total). July 2026 only the 70,000 was paid — the 450,000
+  main payment for July is unpaid as of 2026-08-02.
+- Monthly bill history from data (paid amounts): PLN ~310–414k (Jul 407k),
+  BPJS 450k+70k/mo, MyTelkomsel 150k (Jul), Danatopup 350–600k (Jul 484k),
+  Xendit 265k–1.8M (variable, Jul 288k). These are the candidates for the
+  fixed-cost baseline — exact August fixed bills need user confirmation.
+- `monthly_fixed_bills` (user-confirmed 2026-08-02, amounts are estimates where
+  marked): BPJS Kesehatan 520,000 (450k main `8988800199092194` + 70k secondary
+  `0000001454070069`); PLN ~400,000 (from May–Jul actuals); internet IndiHome
+  **280,000–300,000** (user-stated; not visible in Mandiri statement — likely
+  paid via another channel); MyTelkomsel ~150,000; water ~65,000. Total ≈
+  1,425,000/mo. Variable extras: Danatopup ~350–600k, Xendit up to 1.8M.
 - July 2026 category totals (after above moves/reclass): Household 2,670,426 ·
   Food & Dining 1,428,152 · Utilities 1,602,790 · Healthcare 762,652 · Cash
   600,000 · Shopping 465,700 · Education 180,006 · Entertainment 158,960 ·
@@ -58,6 +75,11 @@ is only reachable via Supabase MCP — this file always works).
 
 ## Outstanding
 
-- None open. (Pending: August 2026 statement not yet imported — expected file
+- `bpjs_july_unpaid`: July 2026 main BPJS (450,000, account `8988800199092194`)
+  still unpaid — user-flagged 2026-08-02.
+- `fixed_bills_august`: August 2026 fixed bills (BPJS 520k, PLN ~400k,
+  IndiHome 280–300k, Telkomsel ~150k, water ~65k) not yet paid as of
+  2026-08-02, plus overdue July BPJS 450k.
+- Pending: August 2026 statement not yet imported — expected file
   `data/transactions/2026-08.md` already exists with the 2 carried-forward
-  transactions.)
+  transactions.
