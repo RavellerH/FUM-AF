@@ -61,11 +61,13 @@ export async function ghPut(pat: string, path: string, data: unknown): Promise<v
   }
 }
 
-// List a directory in the public repo — no PAT needed (60 req/hr unauthenticated, enough for personal use).
+// List a directory. Uses the stored PAT when available (5 000 req/hr) and falls
+// back to unauthenticated (60 req/hr) — avoids rate-limit "failed to fetch" errors.
 export async function ghList(path: string): Promise<string[]> {
-  const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`, {
-    headers: { Accept: 'application/vnd.github.v3+json' },
-  });
+  const pat = typeof localStorage !== 'undefined' ? localStorage.getItem('gh_pat') ?? '' : '';
+  const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
+  if (pat) headers.Authorization = `token ${pat}`;
+  const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`, { headers });
   if (r.status === 404) return [];
   if (!r.ok) throw new Error(`GitHub list error ${r.status} on ${path}`);
   const items = await r.json() as Array<{ name: string }>;
