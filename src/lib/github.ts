@@ -31,10 +31,10 @@ function deserialize<T>(content: string): T {
 }
 
 // Read a file from the public repo — no PAT needed.
+// No custom headers: raw.githubusercontent.com rejects CORS preflights; the
+// timestamp query param is sufficient for cache-busting.
 export async function ghGet<T>(path: string): Promise<T | null> {
-  const r = await fetch(`${RAW}/${path}?_=${Date.now()}`, {
-    headers: { 'Cache-Control': 'no-cache' },
-  });
+  const r = await fetch(`${RAW}/${path}?_=${Date.now()}`);
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`GitHub read error ${r.status} on ${path}`);
   return deserialize<T>(await r.text());

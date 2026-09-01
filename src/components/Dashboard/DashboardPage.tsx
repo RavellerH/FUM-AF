@@ -57,6 +57,9 @@ export function DashboardPage() {
       setMonths(avail);
       setHasData(avail.length > 0);
       if (avail.length && !avail.includes(selectedMonth)) setSelectedMonth(avail[0]);
+    }).catch(() => {
+      // Months list unavailable — still try to load the default month
+      setHasData(null);
     });
   }, []);
 
