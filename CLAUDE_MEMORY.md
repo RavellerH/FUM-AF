@@ -31,15 +31,12 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   686,330 returned 26 Aug → `Refund`. Maman: 4,000,000 on 7 Aug withdrawn the same day
   (pass-through); 5,000,000 on 29 Aug = help for Kavi's care (`Third-Party Transfer`).
 
-## In progress (resume here if a session was cut off)
-User request 2026-10-03: salary not yet paid, must survive on Mandiri balance → detailed,
-correct financial report + list of questions for the user. TODO:
-1. [ ] README: remove stale Supabase references (app is GitHub-backed).
-2. [ ] Compute: monthly cash flow (all in − all out), Sep closing balance 1,808,694,
-   essential vs discretionary (Jul–Sep avg), fixed bills, fees, portfolio buffer, runway.
-3. [ ] Publish HTML report artifact (Bahasa Indonesia) incl. questions for the user.
-4. [ ] Move the questions into "Open questions", add decision-log line, push, ask to merge.
-Branch `claude/adoring-euler-Xt0Pb` is NOT merged yet (memory rewrite, scripts, Aug/Sep fixes).
+## Current situation (2026-10-03)
+- Salary from the user's job is not paid yet; the user must live on the Mandiri balance
+  (last known 1,808,694 on 2026-09-30). Spending runs ~1.9M/month above income at the Sept
+  pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
+- Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (update it when October data or
+  the answers below arrive).
 
 ## Month status
 | Month | Status |
@@ -49,6 +46,11 @@ Branch `claude/adoring-euler-Xt0Pb` is NOT merged yet (memory rewrite, scripts, 
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 
 ## Open questions (ask, then move the answer above and delete the line)
+- URGENT (survival plan): Mandiri balance today and whether Bu Nina's October 6M arrived;
+  salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
+  ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
+  when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
+  cash withdrawals are for; OK to pause BTC DCA; which assets may be sold and minimum balance.
 - Sep 2026 Uncategorized: WijayaPay ×5 (345K), Flip without note ×3 (161K), GoPay Customer
   081322808849 ×2 (120K), Midtrans 95K (by pass dari Salma?), Finpay 76K, IDM QRIS LIVIN 33K,
   M.Amud Royal Jaya 10K.
@@ -58,6 +60,8 @@ Branch `claude/adoring-euler-Xt0Pb` is NOT merged yet (memory rewrite, scripts, 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-03: Survival report published (link above); README cleaned of Supabase. Branch
+  `claude/adoring-euler-Xt0Pb` holds the memory rewrite + scripts + Aug/Sep fixes — merge pending.
 - 2026-10-03: Memory simplified to this file + `data/rules.md` + `scripts/` (audit, import);
   Supabase memory retired (project unreachable). Fixed rules (FLIPTECH→Healthcare removed,
   YOMART→Housing → Household; fees first). Aug/Sep Claude guesses aligned to user rules:
