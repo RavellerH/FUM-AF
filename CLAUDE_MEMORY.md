@@ -55,6 +55,12 @@ is only reachable via Supabase MCP — this file always works).
 - Net rule (dashboard): Reimbursement income only offsets Expenses beyond what
   Reimbursable payments it settles (`aidOffset = max(0, aid - reimbursable)`);
   the old `income - (expense - aid)` double-counted repayments of Reimbursable.
+- Aug 2026 child hospital stay at RSIA Limijati: the 4,000,000 DP was paid in
+  cash from the Deviota savings (not via Mandiri); 686,330 came back 2026-08-26
+  (`Refund`, neutral). Maman's 4,000,000 (Aug 7) -> cash out 4,000,000 is a
+  separate pass-through (`Third-Party Transfer` both sides). Maman's 5,000,000 on
+  Aug 29 is help for the child's care, kept out of income/expense KPI
+  (`Third-Party Transfer`). Hospital cost therefore does not show in KPI.
 - Fuel is higher since the user drives his father's Innova (Sept ~620K vs 300K).
 - Sept 2026 totals (after review): income KPI 6,309,000 (Nina 6,000,000 + Side
   Income 309,000) · expense KPI 7,719,268 · aid (Reimbursement) 1,862,500 ·
