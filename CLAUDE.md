@@ -18,6 +18,7 @@ TypeScript, backed by Supabase (project ID: `loaqwetrozsvrwmhhfwk`, region: ap-s
   - `INCOME_CATEGORIES` (counted in income KPI): `Family`, `Salary`, `Side Income`
 - `Reimbursable` expense = user paid for someone else, expects repayment
 - `Reimbursement` income = money paid back to user (kept out of Income KPI, shown as "aid")
+  Repayments settle `Reimbursable` payments first; only the excess offsets Expenses in Net.
 - Bank statement files are always Mandiri format (password-protected PDF is the common case)
 - Do not hardcode user-specific amounts, month counts, or holding names in
   `src/` — derive them from data. Person-specific context belongs in `claude_memory`.

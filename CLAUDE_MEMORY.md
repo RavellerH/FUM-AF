@@ -46,6 +46,16 @@ is only reachable via Supabase MCP — this file always works).
   supermarkets, wife transfers), `Transport`, `Cash`, `Admin Fee`, `Education`,
   `Side Income`. Do NOT invent `Groceries`/`Transportation`/`Cash Withdrawal`/
   `Bank Fees` (fixed in Sept 2026 after they were used by mistake).
+- Claude subscription (Danatopup ~390-400K, ~3rd of each month) is always repaid
+  by AULIA (`Reimbursement`), so it is `Reimbursable` every month (Mar-Sep 2026
+  reclassified 2026-10-03).
+- BPJS Kesehatan is deliberately NOT being paid since Jul 2026 (arrears are a
+  choice): the user prefers spending that money directly on doctors/treatment
+  (e.g. Limijati). Do not flag it as a missed bill; low/zero Insurance is expected.
+- Net rule (dashboard): Reimbursement income only offsets Expenses beyond what
+  Reimbursable payments it settles (`aidOffset = max(0, aid - reimbursable)`);
+  the old `income - (expense - aid)` double-counted repayments of Reimbursable.
+- Fuel is higher since the user drives his father's Innova (Sept ~620K vs 300K).
 - Sept 2026 totals (after review): income KPI 6,309,000 (Nina 6,000,000 + Side
   Income 309,000) · expense KPI 7,719,268 · aid (Reimbursement) 1,862,500 ·
   net +452,232. Rows: 169.
