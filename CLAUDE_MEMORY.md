@@ -31,6 +31,16 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   686,330 returned 26 Aug → `Refund`. Maman: 4,000,000 on 7 Aug withdrawn the same day
   (pass-through); 5,000,000 on 29 Aug = help for Kavi's care (`Third-Party Transfer`).
 
+## In progress (resume here if a session was cut off)
+User request 2026-10-03: salary not yet paid, must survive on Mandiri balance → detailed,
+correct financial report + list of questions for the user. TODO:
+1. [ ] README: remove stale Supabase references (app is GitHub-backed).
+2. [ ] Compute: monthly cash flow (all in − all out), Sep closing balance 1,808,694,
+   essential vs discretionary (Jul–Sep avg), fixed bills, fees, portfolio buffer, runway.
+3. [ ] Publish HTML report artifact (Bahasa Indonesia) incl. questions for the user.
+4. [ ] Move the questions into "Open questions", add decision-log line, push, ask to merge.
+Branch `claude/adoring-euler-Xt0Pb` is NOT merged yet (memory rewrite, scripts, Aug/Sep fixes).
+
 ## Month status
 | Month | Status |
 |---|---|
