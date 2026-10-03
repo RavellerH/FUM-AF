@@ -15,7 +15,7 @@ TypeScript, backed by Supabase (project ID: `loaqwetrozsvrwmhhfwk`, region: ap-s
 - Currency: IDR, formatted with `fmt()` from `src/lib/format.ts` (no decimals, id-ID locale)
 - Shared money constants live in `src/lib/constants.ts`:
   - `EXCLUDE_FROM_EXPENSE` (not counted in expense KPI): `Third-Party Transfer`, `Housing`, `Investment`, `Reimbursable`
-  - `INCOME_CATEGORIES` (counted in income KPI): `Family`, `Salary`
+  - `INCOME_CATEGORIES` (counted in income KPI): `Family`, `Salary`, `Side Income`
 - `Reimbursable` expense = user paid for someone else, expects repayment
 - `Reimbursement` income = money paid back to user (kept out of Income KPI, shown as "aid")
 - Bank statement files are always Mandiri format (password-protected PDF is the common case)

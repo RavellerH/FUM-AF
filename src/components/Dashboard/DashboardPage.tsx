@@ -116,7 +116,7 @@ export function DashboardPage() {
 
           {/* KPI row */}
           <div className={`mb-6 grid grid-cols-2 gap-3 sm:gap-4 ${showAid ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
-            <KpiCard label="Income" value={fmt(stats.income)} note="Family + Salary" valueTone="positive" />
+            <KpiCard label="Income" value={fmt(stats.income)} note="Family + Salary + Side" valueTone="positive" />
             <KpiCard
               label="Fixed Costs"
               value={fmt(fixedCosts)}
