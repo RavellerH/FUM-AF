@@ -30,6 +30,35 @@ is only reachable via Supabase MCP — this file always works).
   710,328 · Third-Party Transfer 5,110,356 (incl. the 2,000,000 Puspita↔Faza
   bypass). Rows: 173. Income 9,972,856 · outgoing 10,739,214 · expense KPI
   7,972,886.
+- Sept 2026 people/merchant context (user-confirmed): `PATIMAH AHMAD` is the
+  user's wife; transfers to her (direct BSI or via FLIPTECH) are `Household`.
+  Lab work paid up-front (ELVINA SUNJAYA BCA, FLIPTECH "by pass dari Bu nina",
+  "pekerjaan Lab Fisika ITB") is `Reimbursable`, repaid by NINA as
+  `Reimbursement` income (not `Family`). AULIA HANIFA BUDIMAN also repays as
+  `Reimbursement` (Danatopup for Claude subscription, servis motor DENISH MOTOR).
+  Real Family income = NINA 6,000,000. Anything from `FAZA HAFIYAN MASJHUR` is
+  `Side Income` (counted in income KPI): in Sept 100,000 direct + 209,000 BCA
+  self-transfer (Faza's 200K landed in the user's BCA, then moved to Mandiri).
+- Merchant mappings: `SSB Cab Setiabudi` / `Soto SSB` = Soto Sedap Boyolali (Food &
+  Dining); `GNHK CELL` = bensin (Transport); Xendit 88908 = IndiHome internet
+  (Utilities); `TAUFIQ SUMPENO` = herbal medicine (Healthcare).
+- Category vocabulary is fixed across months: use `Household` (incl. groceries,
+  supermarkets, wife transfers), `Transport`, `Cash`, `Admin Fee`, `Education`,
+  `Side Income`. Do NOT invent `Groceries`/`Transportation`/`Cash Withdrawal`/
+  `Bank Fees` (fixed in Sept 2026 after they were used by mistake).
+- Claude subscription (Danatopup ~390-400K, ~3rd of each month) is always repaid
+  by AULIA (`Reimbursement`), so it is `Reimbursable` every month (Mar-Sep 2026
+  reclassified 2026-10-03).
+- BPJS Kesehatan is deliberately NOT being paid since Jul 2026 (arrears are a
+  choice): the user prefers spending that money directly on doctors/treatment
+  (e.g. Limijati). Do not flag it as a missed bill; low/zero Insurance is expected.
+- Net rule (dashboard): Reimbursement income only offsets Expenses beyond what
+  Reimbursable payments it settles (`aidOffset = max(0, aid - reimbursable)`);
+  the old `income - (expense - aid)` double-counted repayments of Reimbursable.
+- Fuel is higher since the user drives his father's Innova (Sept ~620K vs 300K).
+- Sept 2026 totals (after review): income KPI 6,309,000 (Nina 6,000,000 + Side
+  Income 309,000) · expense KPI 7,719,268 · aid (Reimbursement) 1,862,500 ·
+  net +452,232. Rows: 169.
 
 ## Preferences
 
@@ -55,9 +84,17 @@ is only reachable via Supabase MCP — this file always works).
   → August income and 2026-07-30 FLIPTECH 510,328 → August expense by creating
   `data/transactions/2026-08.md` (both dated 2026-08-01). July now 173 rows.
   Created this memory file.
+- `2026-10-03`: Imported September 2026 Mandiri e-statement (169 rows, exact
+  statement sums income 8,171,500 / outgoing 10,043,331; XLSX amounts use
+  Indonesian format, truncate at the decimal comma). Recategorised per user
+  review (see Facts), added `Side Income` to `INCOME_CATEGORIES`. PRs #28, #29.
 
 ## Outstanding
 
-- None open. (Pending: August 2026 statement not yet imported — expected file
+- September 2026: 15 uncategorised rows (~Rp919K) still awaiting user context:
+  WijayaPay x5, Flip no-note x3, GoPay Customer 081322808849 x2, Midtrans 95K
+  (possible bypass from Salma?), Danatopup 79K, Finpay 76K, IDM QRIS 33K,
+  M.Amud Royal Jaya 10K.
+- (Older) Pending: August 2026 statement not yet imported — expected file
   `data/transactions/2026-08.md` already exists with the 2 carried-forward
   transactions.)

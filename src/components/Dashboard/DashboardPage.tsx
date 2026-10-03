@@ -37,13 +37,20 @@ function computeStats(txns: Transaction[]) {
     return acc;
   }, {});
 
-  // Aid/reimbursements received (e.g. family covering a medical bill or purchase).
-  // Kept out of the Income KPI and NOT subtracted from Expenses — the spending still happened.
+  // Reimbursement income is kept out of the Income KPI. Money paid out as
+  // Reimbursable is already excluded from Expenses, so repayments up to that
+  // amount settle it and must not offset Expenses a second time; only the
+  // excess (e.g. family covering spending that is counted in Expenses) does.
   const aid = txns
     .filter(t => t.type === 'income' && t.category === 'Reimbursement')
     .reduce((s, t) => s + t.amount, 0);
+  const reimbursable = txns
+    .filter(t => t.type === 'expense' && t.category === 'Reimbursable')
+    .reduce((s, t) => s + t.amount, 0);
+  const aidSettled = Math.min(aid, reimbursable);
+  const aidOffset = aid - aidSettled;
 
-  return { income, rent, expense, byCategory, aid };
+  return { income, rent, expense, byCategory, aid, aidSettled, aidOffset };
 }
 
 export function DashboardPage() {
@@ -69,12 +76,13 @@ export function DashboardPage() {
   }, [selectedMonth]);
 
   const stats = computeStats(transactions);
-  const expenseAfterAid = stats.expense - stats.aid;
+  const expenseAfterAid = stats.expense - stats.aidOffset;
   const net = stats.income - expenseAfterAid;
   const hasTransactions = transactions.length > 0;
   const fixedCosts = stats.rent + (stats.byCategory['Insurance'] ?? 0);
   const uncategorizedCount = transactions.filter(t => t.category === UNCATEGORIZED).length;
   const showAid = stats.aid > 0;
+  const showAidOffset = stats.aidOffset > 0;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -109,14 +117,18 @@ export function DashboardPage() {
               href={`#/transactions?month=${selectedMonth}&category=Reimbursement`}
               className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm text-brand-800 hover:bg-brand-100"
             >
-              <span>💙 {fmt(stats.aid)} received this month as family aid/reimbursement — already counted in full in Expenses below, since the spending was real</span>
+              <span>
+                💙 {fmt(stats.aid)} received this month as reimbursement/aid
+                {stats.aidSettled > 0 && <> — {fmt(stats.aidSettled)} settles Reimbursable payments (already excluded from Expenses)</>}
+                {showAidOffset && <> — {fmt(stats.aidOffset)} offsets Expenses, since that spending was real</>}
+              </span>
               <span className="font-medium underline">View →</span>
             </a>
           )}
 
           {/* KPI row */}
-          <div className={`mb-6 grid grid-cols-2 gap-3 sm:gap-4 ${showAid ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
-            <KpiCard label="Income" value={fmt(stats.income)} note="Family + Salary" valueTone="positive" />
+          <div className={`mb-6 grid grid-cols-2 gap-3 sm:gap-4 ${showAidOffset ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+            <KpiCard label="Income" value={fmt(stats.income)} note="Family + Salary + Side" valueTone="positive" />
             <KpiCard
               label="Fixed Costs"
               value={fmt(fixedCosts)}
@@ -124,18 +136,18 @@ export function DashboardPage() {
               tone="warning"
             />
             <KpiCard label="Expenses" value={fmt(stats.expense)} note="Variable spending" valueTone="negative" />
-            {showAid && (
+            {showAidOffset && (
               <KpiCard
                 label="Expenses − Aid"
                 value={fmt(expenseAfterAid)}
-                note={`Expenses ${fmt(stats.expense)} − aid received ${fmt(stats.aid)}`}
+                note={`Expenses ${fmt(stats.expense)} − unmatched aid ${fmt(stats.aidOffset)}`}
                 tone="info"
               />
             )}
             <KpiCard
               label="Net"
               value={fmt(net)}
-              note="Income − (expenses − aid)"
+              note="Income − (expenses − unmatched aid)"
               tone={net >= 0 ? 'positive' : 'negative'}
             />
           </div>

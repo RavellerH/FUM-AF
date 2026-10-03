@@ -4,6 +4,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'Investment':        'bg-purple-100 text-purple-700',
   'Family':            'bg-emerald-100 text-emerald-700',
   'Freelance':         'bg-teal-100 text-teal-700',
+  'Side Income':       'bg-teal-100 text-teal-700',
   'Reimbursement':     'bg-cyan-100 text-cyan-700',
   'Refund':            'bg-cyan-100 text-cyan-700',
   'Housing':           'bg-orange-100 text-orange-700',

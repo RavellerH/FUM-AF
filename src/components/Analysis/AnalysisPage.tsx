@@ -433,7 +433,7 @@ export function AnalysisPage() {
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family + Salary' },
+          { label: 'Avg Monthly Income', value: avgIncome, color: 'text-emerald-600', note: 'Family + Salary + Side' },
           { label: 'Avg Monthly Expense', value: avgExpense, color: 'text-rose-500', note: 'Variable spending' },
           { label: `${months.length}-Month Net`, value: totalNet, color: totalNet >= 0 ? 'text-emerald-600' : 'text-rose-500', note: 'Income − expense' },
           { label: 'Monthly Gap', value: avgIncome - avgExpense, color: (avgIncome - avgExpense) >= 0 ? 'text-emerald-600' : 'text-rose-500', note: 'avg income − avg expense' },

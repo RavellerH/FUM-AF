@@ -11,6 +11,6 @@ export const EXCLUDE_FROM_EXPENSE = [
 
 // Income categories counted in the Income KPI. Reimbursement income is
 // deliberately excluded — it's money coming back, not earnings.
-export const INCOME_CATEGORIES = ['Family', 'Salary'];
+export const INCOME_CATEGORIES = ['Family', 'Salary', 'Side Income'];
 
 export const UNCATEGORIZED = 'Uncategorized';

@@ -2,8 +2,8 @@
 [
   "Admin Fee",
   "Cash",
-  "Entertainment",
   "Education",
+  "Entertainment",
   "Family",
   "Food & Dining",
   "Freelance",
@@ -21,6 +21,7 @@
   "Salary",
   "Services",
   "Shopping",
+  "Side Income",
   "Third-Party Transfer",
   "Transport",
   "Uncategorized",
