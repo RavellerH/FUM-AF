@@ -1,96 +1,46 @@
-# FUM-AF — Claude Context
+# FUM-AF — Claude instructions
 
-## Project
-Personal finance tracker for a single user. Parses Mandiri bank statement PDFs,
-categorises transactions, and shows dashboards + analysis. Built with React + Vite +
-TypeScript, backed by Supabase (project ID: `loaqwetrozsvrwmhhfwk`, region: ap-southeast-2).
+Single-user personal finance tracker (Mandiri account). React 19 + TypeScript + Vite +
+Tailwind + Recharts, deployed to GitHub Pages on every push to `main` (HashRouter, base `/FUM-AF/`).
 
-## Stack
-- Frontend: React 18, TypeScript, Tailwind CSS, Recharts
-- Backend: Supabase (Postgres + Auth + RLS)
-- AI: Gemini (statement parsing + spending insights)
-- Deploy: GitHub Pages via `.github/workflows/deploy.yml` (HashRouter, base `/FUM-AF/`)
+**Data lives in this repo** as `---json` fenced files, read via raw.githubusercontent.com and
+written by the app through the GitHub API with the user's PAT:
+`data/transactions/YYYY-MM.md`, `data/categories.md`, `data/rules.md`, `data/portfolio.md`
+(+ `data/portfolio_history/`). Gemini parses PDF uploads in the app. Supabase is legacy
+(old migrations only) — the `claude_memory` table is retired; do not use it.
 
-## Key conventions
-- Currency: IDR, formatted with `fmt()` from `src/lib/format.ts` (no decimals, id-ID locale)
-- Shared money constants live in `src/lib/constants.ts`:
-  - `EXCLUDE_FROM_EXPENSE` (not counted in expense KPI): `Third-Party Transfer`, `Housing`, `Investment`, `Reimbursable`
-  - `INCOME_CATEGORIES` (counted in income KPI): `Family`, `Salary`, `Side Income`
-- `Reimbursable` expense = user paid for someone else, expects repayment
-- `Reimbursement` income = money paid back to user (kept out of Income KPI, shown as "aid")
-  Repayments settle `Reimbursable` payments first; only the excess offsets Expenses in Net.
-- Bank statement files are always Mandiri format (password-protected PDF is the common case)
-- Do not hardcode user-specific amounts, month counts, or holding names in
-  `src/` — derive them from data. Person-specific context belongs in `claude_memory`.
+## Every session
+1. Read `CLAUDE_MEMORY.md` first — it is the only memory. Don't re-ask what it answers.
+2. Rows in months marked **locked** there are final: don't recategorize or edit them unless
+   the user asks about that row/month.
+3. New statement (.xlsx): `python3 scripts/import_mandiri_xlsx.py <file>` (password from the
+   user, session-only — never store or commit it). Then ask only about `Uncategorized` rows,
+   largest first.
+4. Before committing data: `python3 scripts/audit.py` must report 0 errors. It also prints
+   per-month KPIs — use it instead of recomputing totals by hand.
+5. When the user confirms something reusable: merchant → category goes in `data/rules.md`;
+   people, exceptions and one-off context go in `CLAUDE_MEMORY.md`. Update the month status
+   and add one line to its decision log. Never duplicate a fact in two places.
 
-## Memory system
+## Category precedence
+1. What the user said about that row → 2. `data/rules.md` (first match, same as the app)
+→ 3. how the same merchant is categorized in locked months → 4. `Uncategorized`, ask.
+Use only names in `data/categories.md`; never invent new ones without the user.
 
-Two layers:
+## Accounting rules (constants in `src/lib/constants.ts`)
+- **Income KPI** = `Family`, `Salary`, `Side Income`.
+- **Expense KPI** = every expense except `Third-Party Transfer`, `Housing`, `Investment`, `Reimbursable`.
+- `Reimbursable` = user paid for someone and expects it back; `Reimbursement` = that money
+  coming back (shown as aid). Repayments settle `Reimbursable` first; only the excess offsets
+  Expenses in Net.
+- `Third-Party Transfer` = pass-through/bypass money (in and out net to zero), never personal.
+- `Refund` = money back for something that was not counted in Expenses (neutral).
+- `Housing` = rent and the house water bill; shown under Fixed Costs, excluded from Expenses.
+- The file a row sits in decides its month (money meant for next month goes in next month's file).
+- Keep every bank row; reclassify, never delete.
 
-1. `CLAUDE_MEMORY.md` (repo root) — the always-works, file-based memory. Read
-   its Facts / Preferences / Outstanding at session start and append to its
-   Session log after meaningful work. This is the primary memory for this repo.
-2. `public.claude_memory` — Supabase cross-session memory. It is RLS-locked
-   (deny-all): the web app cannot touch it; only Claude via Supabase MCP can.
-
-### Schema
-| column | notes |
-|---|---|
-| `category` | `session_log` \| `fact` \| `preference` \| `outstanding` — nothing else |
-| `key` | stable snake_case identifier; required for everything except `session_log` |
-| `content` | the memory itself, self-contained prose |
-| `status` | `active` (default) \| `resolved` \| `archived` — never delete rows |
-| `session_date`, `created_at`, `updated_at` | bookkeeping (updated_at auto-touches) |
-
-`(category, key)` is unique — always UPSERT keyed memories, never insert duplicates.
-
-### At session start — load context
-```sql
--- Recent session logs
-SELECT session_date, content FROM claude_memory
-WHERE category = 'session_log'
-ORDER BY created_at DESC LIMIT 5;
-
--- Standing knowledge (only active rows)
-SELECT category, key, content FROM claude_memory
-WHERE category IN ('fact', 'preference', 'outstanding') AND status = 'active'
-ORDER BY category, updated_at DESC;
-```
-
-### During / at end of session — write memory
-Session log (once per session with meaningful work; append-only):
-```sql
-INSERT INTO claude_memory (category, content)
-VALUES ('session_log', '<YYYY-MM-DD>: <what was done, decisions made, open items>');
-```
-
-Facts, preferences, outstanding items (upsert by key — no DELETE+INSERT):
-```sql
-INSERT INTO claude_memory (category, key, content)
-VALUES ('fact', 'monthly_fixed_bills', '<content>')
-ON CONFLICT (category, key) WHERE key IS NOT NULL
-DO UPDATE SET content = EXCLUDED.content, status = 'active';
-```
-
-When an outstanding item is settled, resolve it — keep the history:
-```sql
-UPDATE claude_memory
-SET status = 'resolved',
-    content = content || ' | RESOLVED <YYYY-MM-DD>: <how>'
-WHERE category = 'outstanding' AND key = '<key>';
-```
-
-### Category purposes
-| category | purpose | key style |
-|---|---|---|
-| `session_log` | What happened each session, open items | none |
-| `fact` | Persistent financial facts (bills, balances, coverage arrangements) | `monthly_fixed_bills`, `internet_bill` |
-| `preference` | How the user wants Claude to behave/analyse | `expense_kpi_rules` |
-| `outstanding` | Follow-ups (unpaid reimbursables, blocked work) | `reimbursable_<person>` |
-
-Rules of thumb: keep each row self-contained (readable without other rows);
-prefer updating an existing key over minting near-duplicates; use `archived`
-for facts that stopped being true, `resolved` for completed follow-ups.
-
-## Development branch
-Active work goes on branches prefixed `claude/`.
+## Code conventions
+- IDR formatted with `fmt()` from `src/lib/format.ts`.
+- Don't hardcode user-specific amounts, names or holdings in `src/` — derive from data;
+  person-specific context belongs in `CLAUDE_MEMORY.md`.
+- Work on `claude/*` branches; squash-merge to `main` via PR only when the user asks.
