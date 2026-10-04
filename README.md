@@ -1,6 +1,6 @@
 # FUM-AF — Personal Finance Tracker
 
-A personal finance web app for importing, categorizing, and analyzing Indonesian bank statements (BCA, Mandiri, etc.). Built for one user, runs entirely in the browser, data stored in Supabase.
+A personal finance web app for importing, categorizing, and analyzing Indonesian bank statements (BCA, Mandiri, etc.). Built for one user, runs entirely in the browser, data stored as JSON files in this repo's `data/` folder (read from GitHub, written with a personal access token).
 
 **Live app:** https://ravellerh.github.io/FUM-AF
 
@@ -29,7 +29,7 @@ A personal finance web app for importing, categorizing, and analyzing Indonesian
 - **Dashboard & summaries** — monthly income vs. expense charts and per-category breakdowns
 - **Analysis page** — cash flow trends, spending donut, category area chart, net worth snapshot, asset allocation, AI narrative insights via Gemini
 - **Investment tracker** — manual portfolio snapshot for stocks (lots, PnL, sector mix), Hyperliquid crypto (equity breakdown in USD/IDR), and crypto investing positions
-- **Secure** — email whitelist via Supabase Auth; only approved accounts can log in
+- **Secure** — password gate in the app; writing data requires the owner's GitHub token
 
 ---
 
@@ -40,7 +40,7 @@ A personal finance web app for importing, categorizing, and analyzing Indonesian
 | Frontend | React 19 + TypeScript + Vite |
 | Routing | React Router DOM v7 |
 | Styling | Tailwind CSS |
-| Backend / DB | Supabase (PostgreSQL + Auth) |
+| Data | JSON files in `data/` via GitHub (raw + Contents API) |
 | AI parsing & insights | Google Gemini API (`@google/generative-ai`) |
 | PDF parsing | pdf.js (`pdfjs-dist`) |
 | Excel parsing | SheetJS (`xlsx`) |
@@ -60,13 +60,13 @@ npm run dev
 ```
 
 **Required environment variables:**
-`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`, `VITE_ALLOWED_EMAIL`.
+`VITE_GEMINI_API_KEY` (see `.env.local.example`).
 
 ---
 
 ## Deployment
 
-Pushes to `main` automatically deploy to GitHub Pages via GitHub Actions. The workflow builds the Vite app and publishes `./dist` using `peaceiris/actions-gh-pages`. Secrets required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`, `VITE_ALLOWED_EMAIL`.
+Pushes to `main` automatically deploy to GitHub Pages via GitHub Actions. The workflow builds the Vite app and publishes `./dist` using `peaceiris/actions-gh-pages`. Secret required: `VITE_GEMINI_API_KEY`.
 
 ---
 
@@ -84,7 +84,7 @@ src/
     Upload/         # drag-and-drop, PDF/Excel parsing, Gemini call
     shared/         # Navbar, Spinner, ErrorBanner, etc.
   hooks/            # useAuth, useTransactions, useCategories, useSummaries, usePortfolio, useRules, useFilePassword
-  lib/              # supabase client, gemini client
+  lib/              # GitHub data client, gemini client
   pages/            # App.tsx (router root)
   types/            # shared TypeScript types
 ```
