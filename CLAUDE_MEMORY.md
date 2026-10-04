@@ -60,8 +60,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
-- 2026-10-03: Survival report published (link above); README cleaned of Supabase. Branch
-  `claude/adoring-euler-Xt0Pb` holds the memory rewrite + scripts + Aug/Sep fixes — merge pending.
+- 2026-10-04: Memory rewrite, scripts, Aug/Sep fixes and README cleanup merged to main (PR #31).
+- 2026-10-03: Survival report published (link above).
 - 2026-10-03: Memory simplified to this file + `data/rules.md` + `scripts/` (audit, import);
   Supabase memory retired (project unreachable). Fixed rules (FLIPTECH→Healthcare removed,
   YOMART→Housing → Household; fees first). Aug/Sep Claude guesses aligned to user rules:
