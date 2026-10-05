@@ -60,6 +60,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-05: Sep missing in the live app: repo default branch is `claude/keen-heisenberg-qtPhp`
+  (old), and the Contents API (month list, app writes) used the default branch. `src/lib/github.ts`
+  now pins `ref`/`branch` to `main`. Default branch should be switched back to `main` in GitHub settings.
 - 2026-10-04: Memory rewrite, scripts, Aug/Sep fixes and README cleanup merged to main (PR #31).
 - 2026-10-03: Survival report published (link above).
 - 2026-10-03: Memory simplified to this file + `data/rules.md` + `scripts/` (audit, import);

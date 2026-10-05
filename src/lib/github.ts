@@ -43,7 +43,7 @@ export async function ghGet<T>(path: string): Promise<T | null> {
 // Write a file — PAT required.
 export async function ghPut(pat: string, path: string, data: unknown): Promise<void> {
   const url = `${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`;
-  const existingRes = await fetch(url, { headers: ghHeaders(pat) });
+  const existingRes = await fetch(`${url}?ref=${BRANCH}`, { headers: ghHeaders(pat) });
   const sha = existingRes.ok ? (await existingRes.json()).sha as string : undefined;
 
   const r = await fetch(url, {
@@ -52,6 +52,7 @@ export async function ghPut(pat: string, path: string, data: unknown): Promise<v
     body: JSON.stringify({
       message: `update ${path}`,
       content: toBase64(serialize(data)),
+      branch: BRANCH,
       ...(sha ? { sha } : {}),
     }),
   });
@@ -67,7 +68,9 @@ export async function ghList(path: string): Promise<string[]> {
   const pat = typeof localStorage !== 'undefined' ? localStorage.getItem('gh_pat') ?? '' : '';
   const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
   if (pat) headers.Authorization = `token ${pat}`;
-  const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}`, { headers });
+  // Pin the branch: the Contents API otherwise uses the repo's default branch,
+  // which is not guaranteed to be the one the app reads from.
+  const r = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${DIR}/${path}?ref=${BRANCH}`, { headers });
   if (r.status === 404) return [];
   if (!r.ok) throw new Error(`GitHub list error ${r.status} on ${path}`);
   const items = await r.json() as Array<{ name: string }>;
