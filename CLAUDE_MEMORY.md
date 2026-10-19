@@ -37,6 +37,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
 - Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (update it when October data or
   the answers below arrive).
+- 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
+  to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
+  4,100,000 on 2026-10-19 (vs 5,446,500 on 2026-09-01). Proceeds (T+2 to RDN) become the first
+  survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 
 ## Month status
 | Month | Status |
@@ -46,7 +50,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 
 ## Open questions (ask, then move the answer above and delete the line)
-- URGENT (survival plan): Mandiri balance today and whether Bu Nina's October 6M arrived;
+- URGENT (survival plan): Mandiri balance today;
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
   when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
@@ -60,6 +64,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-19: User exiting all stocks after the MSCI-driven IHSG crash; Bu Nina Oct 6M received.
 - 2026-10-05: Sep missing in the live app: repo default branch is `claude/keen-heisenberg-qtPhp`
   (old), and the Contents API (month list, app writes) used the default branch. `src/lib/github.ts`
   now pins `ref`/`branch` to `main`. Default branch should be switched back to `main` in GitHub settings.
