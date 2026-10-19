@@ -43,6 +43,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
+- Mandiri balance 2,500,000 on 2026-10-19 (≈5.3M spent Oct 1–19 incl. the funeral trip).
 
 ## Month status
 | Month | Status |
@@ -52,7 +53,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 
 ## Open questions (ask, then move the answer above and delete the line)
-- URGENT (survival plan): Mandiri balance today;
+- URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
   when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
