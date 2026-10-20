@@ -39,7 +39,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   the answers below arrive).
 - 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
   to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
-  4,100,000 on 2026-10-19 (vs 5,446,500 on 2026-09-01). Proceeds (T+2 to RDN) become the first
+  4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
