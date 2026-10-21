@@ -40,7 +40,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
   to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
   4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). By 2026-10-20 the big banks
-  (BBCA, BBRI, BMRI) were sold; SINI still held (others to confirm). Proceeds (T+2 to RDN) become the first
+  (BBCA, BBRI, BMRI) were sold. 2026-10-21: only SINI 3 lots left, ~−800K unrealized
+  (data/portfolio.md 1 Sep snapshot says SINI 1 lot — confirm whether 2 lots were bought later). Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
