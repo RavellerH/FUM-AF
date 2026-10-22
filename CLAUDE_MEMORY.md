@@ -41,7 +41,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
   4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). By 2026-10-20 the big banks
   (BBCA, BBRI, BMRI) were sold. 2026-10-21: only SINI 3 lots left, ~−800K unrealized
-  (data/portfolio.md 1 Sep snapshot says SINI 1 lot — confirm whether 2 lots were bought later). Proceeds (T+2 to RDN) become the first
+  (data/portfolio.md 1 Sep snapshot says SINI 1 lot — confirm whether 2 lots were bought later).
+  SINI ~Rp9,650 on 2026-10-21 (≈2.9M for 3 lots; was ~18,300 on 23 Sep). BEI ARB is 7%/day
+  until 31 Dec 2026 and the minimum price is Rp1, so the theoretical worst case is near-total loss. Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
