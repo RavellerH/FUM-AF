@@ -14,8 +14,8 @@
   },
   "crypto_trading": {
     "platform": "Hyperliquid",
-    "total_equity_usd": 92.03,
-    "trading_equity_usd": 92.03,
+    "total_equity_usd": 86.44,
+    "trading_equity_usd": 86.44,
     "vault_equity_usd": 0,
     "earn_balance_usd": 0,
     "staking_hype": 0
@@ -34,6 +34,30 @@
       "value_idr": 984780
     },
     {
+      "platform": "Rabby",
+      "symbol": "NEAR",
+      "amount": 1.0803,
+      "value_idr": 90540
+    },
+    {
+      "platform": "Rabby",
+      "symbol": "ETH",
+      "amount": 0.00020925,
+      "value_idr": 9360
+    },
+    {
+      "platform": "Rabby",
+      "symbol": "USDT",
+      "amount": 0.04,
+      "value_idr": 720
+    },
+    {
+      "platform": "Phantom",
+      "symbol": "PUMP",
+      "amount": 1302.25391,
+      "value_idr": 101880
+    },
+    {
       "platform": "Indodax",
       "symbol": "XEC",
       "amount": 10412.32216525,
@@ -44,12 +68,6 @@
       "symbol": "USDT",
       "amount": 0.01750293,
       "value_idr": 312
-    },
-    {
-      "platform": "Phantom",
-      "symbol": "PUMP",
-      "amount": 1302.25391,
-      "value_idr": 101880
     }
   ],
   "savings": [

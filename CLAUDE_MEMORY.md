@@ -47,7 +47,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
   already holds 0.672 HYPE in Rabby ($54.71 ≈ 984,780 at Rp18,000/USD). HYPE is ~10% of BTC+HYPE;
-  gap to the 30% target ≈ 2.69M. Rabby total $146.74 (the non-HYPE $92.03 is recorded as Hyperliquid).
+  gap to the 30% target ≈ 2.69M. Rabby total $146.74: HYPE/NEAR/ETH/USDT recorded with amounts, remaining $86.44 as Hyperliquid.
 - Crypto allocation target (user-confirmed 2026-10-28): **70% BTC : 30% HYPE**, measured on BTC + HYPE
   only (Hyperliquid USDC is cash reserve, not part of it). HYPE target = BTC value × 30/70.
   DCA rules: Rp500–600K/month (start ~450K = monthly surplus until salary is paid), bought after
@@ -81,6 +81,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-28: Investment page: allocation donut (`AllocationPie.tsx`, top 5 + Lainnya). Rabby NEAR/ETH/USDT recorded as `crypto_investing` with token amounts; Hyperliquid remainder $86.44.
 - 2026-10-28: Portfolio snapshot updated from screenshots (Stockbit, Indodax, Rabby, Phantom); 1 Sep moved to history. USD/IDR 18,000 assumed (app FX API unreachable from the sandbox).
 - 2026-10-19: User exiting all stocks after the MSCI-driven IHSG crash; Bu Nina Oct 6M received.
 - 2026-10-05: Sep missing in the live app: repo default branch is `claude/keen-heisenberg-qtPhp`

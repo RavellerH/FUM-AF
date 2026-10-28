@@ -5,6 +5,7 @@ import { fmt, fmtPct } from '../../lib/format';
 import { fetchUsdIdr } from '../../lib/fx';
 import type { PortfolioData, StockHolding, CryptoInvesting } from '../../hooks/usePortfolio';
 import { PortfolioChart } from './PortfolioChart';
+import { AllocationPie } from './AllocationPie';
 
 // ---------- Edit helpers ----------
 function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -139,6 +140,8 @@ export function InvestmentPage() {
           <span>Savings <span className="font-medium text-slate-800">{fmt(savingsTotal)}</span></span>
         </div>
       </div>
+
+      <AllocationPie portfolio={p} usdIdr={usdIdr} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
