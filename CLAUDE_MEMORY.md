@@ -37,6 +37,30 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
 - Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (update it when October data or
   the answers below arrive).
+- 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
+  to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
+  4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). By 2026-10-20 the big banks
+  (BBCA, BBRI, BMRI) were sold. Snapshot 2026-10-28 (screenshots, in data/portfolio.md): only SINI
+  3 lots left (avg 12,610.55 — 2 lots bought after 1 Sep; price 9,575; −910,666 unrealized),
+  Stockbit RDN cash 915,936. BEI ARB is 7%/day until 31 Dec 2026, minimum price Rp1.
+- 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
+  FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
+  (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
+  holds 1.722 HYPE (1.05 on Hyperliquid + 0.672 in Rabby, per Nansen) ≈ $140.60 ≈ 2,530,800 at
+  Rp18,000/USD → HYPE is ~22.8% of BTC+HYPE; gap to the 30% target ≈ 1.14M. There is NO USDC on
+  Hyperliquid (the earlier "$86 USDC" was the 1.05 HYPE), so Hyperliquid is not a stable cash reserve;
+  the survival report's "sell Hyperliquid stablecoin first" advice is outdated. Also: NEAR 1.08, SOL
+  0.00495, ETH ~0.000224, PUMP 1,302.25 (Nansen covers Rabby + Phantom).
+- Crypto allocation target (user-confirmed 2026-10-28): **70% BTC : 30% HYPE**, measured on BTC + HYPE
+  only, counting HYPE in every wallet. HYPE target = BTC value × 30/70.
+  DCA rules: Rp500–600K/month (start ~450K = monthly surplus until salary is paid), bought after
+  Bu Nina's transfer, skipped in an emergency month. All DCA goes to HYPE until it reaches 30%;
+  afterwards each month buy whichever asset is below its target weight (no selling to rebalance).
+  HYPE (and new BTC) via FLOQ; existing BTC stays on Indodax. Proceeds (T+2 to RDN) become the first
+  survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
+- Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
+  Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
+- Mandiri balance 2,500,000 on 2026-10-19 (≈5.3M spent Oct 1–19 incl. the funeral trip).
 
 ## Month status
 | Month | Status |
@@ -46,7 +70,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 
 ## Open questions (ask, then move the answer above and delete the line)
-- URGENT (survival plan): Mandiri balance today and whether Bu Nina's October 6M arrived;
+- URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
   when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
@@ -60,6 +84,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-28: Nansen screenshot: Hyperliquid balance is 1.05 HYPE (not USDC) — recorded as `crypto_investing`, `crypto_trading` set to 0; added SOL, precise ETH.
+- 2026-10-28: Investment page: allocation donut (`AllocationPie.tsx`, top 5 + Lainnya). Rabby NEAR/ETH/USDT recorded as `crypto_investing` with token amounts; Hyperliquid remainder $86.44.
+- 2026-10-28: Portfolio snapshot updated from screenshots (Stockbit, Indodax, Rabby, Phantom); 1 Sep moved to history. USD/IDR 18,000 assumed (app FX API unreachable from the sandbox).
+- 2026-10-19: User exiting all stocks after the MSCI-driven IHSG crash; Bu Nina Oct 6M received.
 - 2026-10-05: Sep missing in the live app: repo default branch is `claude/keen-heisenberg-qtPhp`
   (old), and the Contents API (month list, app writes) used the default branch. `src/lib/github.ts`
   now pins `ref`/`branch` to `main`. Default branch should be switched back to `main` in GitHub settings.
