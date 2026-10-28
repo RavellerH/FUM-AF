@@ -56,7 +56,13 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   DCA rules: Rp500–600K/month (start ~450K = monthly surplus until salary is paid), bought after
   Bu Nina's transfer, skipped in an emergency month. All DCA goes to HYPE until it reaches 30%;
   afterwards each month buy whichever asset is below its target weight (no selling to rebalance).
-  HYPE (and new BTC) via FLOQ; existing BTC stays on Indodax. Proceeds (T+2 to RDN) become the first
+  HYPE (and new BTC) via FLOQ; existing BTC stays on Indodax.
+- 2026-10-28: Stock loss estimate (Stockbit): equity ≈5,612,678 on 1 Sep (stocks 5,446,500 + ~166K cash)
+  → 3,788,436 on 28 Oct (−1.82M, −32.5%); vs cost ≈5,888,248 → −2.10M (−35.7%), assuming no RDN
+  withdrawals since 1 Sep. Exact lifetime loss needs Stockbit realized P&L / deposit history.
+- 2026-10-28: User wants to try Variational Omni (omni.variational.io, zero-fee RFQ perps on Arbitrum)
+  to learn and farm points (VAR TGE expected Q4 2026). Advised: small capped "tuition" amount, ≤2x, not
+  from the survival budget. Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
@@ -75,7 +81,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
   when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
   cash withdrawals are for; OK to pause BTC DCA; which assets may be sold and minimum balance.
-- Sep 2026 Uncategorized: WijayaPay ×5 (345K), Flip without note ×3 (161K), GoPay Customer
+- Sep 2026 Uncategorized: WijayaPay ×5 (345K; in Jan/Feb/Jul WijayaPay was `Investment` — maybe Stockbit/crypto top-ups?), Flip without note ×3 (161K), GoPay Customer
   081322808849 ×2 (120K), Midtrans 95K (by pass dari Salma?), Finpay 76K, IDM QRIS LIVIN 33K,
   M.Amud Royal Jaya 10K.
 - Aug 2026: ShopeePay ×6 are `Third-Party Transfer` (hidden from KPI) — titipan or own spending?
