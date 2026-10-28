@@ -14,8 +14,8 @@
   },
   "crypto_trading": {
     "platform": "Hyperliquid",
-    "total_equity_usd": 86.44,
-    "trading_equity_usd": 86.44,
+    "total_equity_usd": 0,
+    "trading_equity_usd": 0,
     "vault_equity_usd": 0,
     "earn_balance_usd": 0,
     "staking_hype": 0
@@ -28,6 +28,12 @@
       "value_idr": 8563169
     },
     {
+      "platform": "Hyperliquid",
+      "symbol": "HYPE",
+      "amount": 1.05,
+      "value_idr": 1546020
+    },
+    {
       "platform": "Rabby",
       "symbol": "HYPE",
       "amount": 0.672,
@@ -36,14 +42,14 @@
     {
       "platform": "Rabby",
       "symbol": "NEAR",
-      "amount": 1.0803,
-      "value_idr": 90540
+      "amount": 1.08,
+      "value_idr": 90720
     },
     {
       "platform": "Rabby",
       "symbol": "ETH",
-      "amount": 0.00020925,
-      "value_idr": 9360
+      "amount": 0.00022422,
+      "value_idr": 9427
     },
     {
       "platform": "Rabby",
@@ -54,8 +60,14 @@
     {
       "platform": "Phantom",
       "symbol": "PUMP",
-      "amount": 1302.25391,
-      "value_idr": 101880
+      "amount": 1302.25,
+      "value_idr": 101700
+    },
+    {
+      "platform": "Phantom",
+      "symbol": "SOL",
+      "amount": 0.00495,
+      "value_idr": 9092
     },
     {
       "platform": "Indodax",
