@@ -43,7 +43,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   (BBCA, BBRI, BMRI) were sold. 2026-10-21: only SINI 3 lots left, ~−800K unrealized
   (data/portfolio.md 1 Sep snapshot says SINI 1 lot — confirm whether 2 lots were bought later).
   SINI ~Rp9,650 on 2026-10-21 (≈2.9M for 3 lots; was ~18,300 on 23 Sep). BEI ARB is 7%/day
-  until 31 Dec 2026 and the minimum price is Rp1, so the theoretical worst case is near-total loss. Proceeds (T+2 to RDN) become the first
+  until 31 Dec 2026 and the minimum price is Rp1, so the theoretical worst case is near-total loss.
+- 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
+  FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Not yet clarified: 600K per month or in total. Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
 - Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
   Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
