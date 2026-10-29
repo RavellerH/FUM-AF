@@ -9,6 +9,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'Refund':            'bg-cyan-100 text-cyan-700',
   'Housing':           'bg-orange-100 text-orange-700',
   'Household':         'bg-orange-100 text-orange-700',
+  'Duka & Keluarga':   'bg-stone-200 text-stone-700',
   'Home Maintenance':  'bg-orange-100 text-orange-700',
   'Food & Dining':     'bg-amber-100 text-amber-700',
   'Healthcare':        'bg-rose-100 text-rose-700',

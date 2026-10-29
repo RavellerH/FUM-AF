@@ -12,6 +12,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | MAMAN BUDIMAN | ayah (father) | Help / pass-through → `Third-Party Transfer` unless the user says otherwise |
 | PATIMAH AHMAD | istri (wife) | Transfers to her (BSI or Flip) = kebutuhan rumah → `Household` |
 | FAZA HAFIYAN MASJHUR | side-income source | Money from Faza → `Side Income`, also when it arrives via the user's BCA |
+| SALMA RUFAIDA BUDIMAN (SMBC) | family | Oct 2026: 2,500,000 help for the mother-in-law's funeral → `Reimbursement` |
 | PUSPITA YANTI HJ. | pass-through sender | `Third-Party Transfer` (Jul 2026: 2,000,000 passed on to Faza) |
 | MUHAMAD FARHAN BUDIMAN | the user's own BCA | Depends on whose money it is — ask |
 | Kavi | anak (child) | Khitan Jun 2026; dirawat di RSIA Limijati Aug 2026 |
@@ -74,8 +75,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   to learn and farm points (VAR TGE expected Q4 2026). Advised: small capped "tuition" amount, ≤2x, not
   from the survival budget. Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
-- Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
-  Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
+- Oct 2026 one-off: trip to Bogor (14–16 Oct) for the funeral of the user's mother-in-law (wife
+  Patimah's mother). User-confirmed: all trip/funeral rows → new category `Duka & Keluarga` (counted in
+  Expenses, shown separately; 3,571,266 incl. 2M cash withdrawn); Salma 2.5M + Aulia 2M = help for the
+  funeral → `Reimbursement` (aid offsets Expenses in Net).
 - Mandiri balance 2,500,000 on 2026-10-19 (≈5.3M spent Oct 1–19 incl. the funeral trip).
 
 ## Month status
@@ -101,6 +104,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.
 - 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
 - 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
 - 2026-10-28: Nansen screenshot: Hyperliquid balance is 1.05 HYPE (not USDC) — recorded as `crypto_investing`, `crypto_trading` set to 0; added SOL, precise ETH.
