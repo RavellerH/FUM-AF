@@ -79,6 +79,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   Patimah's mother). User-confirmed: all trip/funeral rows → new category `Duka & Keluarga` (counted in
   Expenses, shown separately; 3,571,266 incl. 2M cash withdrawn); Salma 2.5M + Aulia 2M = help for the
   funeral → `Reimbursement` (aid offsets Expenses in Net).
+  Also: 300K from the user's own DANA (25 Oct) = funeral help → `Reimbursement`. Wife's class: paid Dita
+  469K (5 Oct), refunded (15 Oct) → both `Third-Party Transfer`; re-paid via Flip for November.
+  Buminioka / Absolute Drink / Jendela Alam = wisata → `Entertainment`; IKEA + Klik Indomaret → `Household`.
 - Mandiri balance 2,500,000 on 2026-10-19 (≈5.3M spent Oct 1–19 incl. the funeral trip).
 
 ## Month status
@@ -87,7 +90,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-01 … 2026-07 | locked |
 | 2026-08 | locked (2026-10-03) |
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
-| 2026-10 | partial import (1–28 Oct, 163 rows) on 2026-10-29; awaiting answers + full statement. When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
+| 2026-10 | 1–28 Oct imported and reviewed with the user on 2026-10-29 (4 tiny rows left: M.Amud Royal Jaya ×2, Midtrans 20K, 6A6V Pancawarna). When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
+| 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
 
 ## Open questions (ask, then move the answer above and delete the line)
 - URGENT (survival plan):
