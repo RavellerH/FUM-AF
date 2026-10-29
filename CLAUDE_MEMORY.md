@@ -36,8 +36,13 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Salary from the user's job is not paid yet; the user must live on the Mandiri balance
   (last known 1,808,694 on 2026-09-30). Spending runs ~1.9M/month above income at the Sept
   pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
-- Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (update it when October data or
-  the answers below arrive).
+- Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (v2 updated 2026-10-29 with Oct 1–28 data;
+  update again when the full October/November statements or salary news arrive).
+- 2026-10-29 analysis: routine spending ~7.4–7.7M/month for Jul–Oct vs routine income ~6.2M → structural
+  gap ~1.2–1.6M/month, covered so far by family help. Stable cash on 28 Oct: Mandiri 1,018,152 +
+  Stockbit RDN 915,936 ≈ 1.93M (≈1.5 months at the Oct pattern). Advised: cut to the 5.55M survival
+  budget (Household, eating out, wisata), postpone the HYPE DCA until spending < income or salary is
+  paid, sell BTC before HYPE if cash < ~2M.
 - 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
   to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
   4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). By 2026-10-20 the big banks
@@ -108,6 +113,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
 - 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.
 - 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
 - 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
