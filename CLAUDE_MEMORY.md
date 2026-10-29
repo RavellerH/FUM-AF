@@ -84,6 +84,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-01 … 2026-07 | locked |
 | 2026-08 | locked (2026-10-03) |
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
+| 2026-10 | partial import (1–28 Oct, 163 rows) on 2026-10-29; awaiting answers + full statement. When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
 
 ## Open questions (ask, then move the answer above and delete the line)
 - URGENT (survival plan):
@@ -100,6 +101,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
 - 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
 - 2026-10-28: Nansen screenshot: Hyperliquid balance is 1.05 HYPE (not USDC) — recorded as `crypto_investing`, `crypto_trading` set to 0; added SOL, precise ETH.
 - 2026-10-28: Investment page: allocation donut (`AllocationPie.tsx`, top 5 + Lainnya). Rabby NEAR/ETH/USDT recorded as `crypto_investing` with token amounts; Hyperliquid remainder $86.44.
