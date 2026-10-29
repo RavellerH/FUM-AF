@@ -50,6 +50,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   equity −763B; H1 2026 "profit" ~680B is a one-off negative-goodwill gain from buying PT Kemilau Mulia
   Sakti (Rp1.73T, Jun 2026), equity still −125B, related-party debt 1.52T. CUAN holds 27.78%, no binding
   deal as of 30 Sep (Dec 2025 attempt was halted); a completed takeover would trigger a tender offer.
+- 2026-10-29: User DECIDED TO HOLD all 3 SINI lots as a deliberate bet on the CUAN takeover, accepting
+  the risk (supersedes "exit all stocks" for SINI). Don't push them to sell again; treat SINI as ~0 in
+  survival planning, and flag only real news (deal signed/cancelled, tender offer price).
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
@@ -97,6 +100,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
 - 2026-10-28: Nansen screenshot: Hyperliquid balance is 1.05 HYPE (not USDC) — recorded as `crypto_investing`, `crypto_trading` set to 0; added SOL, precise ETH.
 - 2026-10-28: Investment page: allocation donut (`AllocationPie.tsx`, top 5 + Lainnya). Rabby NEAR/ETH/USDT recorded as `crypto_investing` with token amounts; Hyperliquid remainder $86.44.
 - 2026-10-28: Portfolio snapshot updated from screenshots (Stockbit, Indodax, Rabby, Phantom); 1 Sep moved to history. USD/IDR 18,000 assumed (app FX API unreachable from the sandbox).
