@@ -43,6 +43,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   (BBCA, BBRI, BMRI) were sold. Snapshot 2026-10-28 (screenshots, in data/portfolio.md): only SINI
   3 lots left (avg 12,610.55 — 2 lots bought after 1 Sep; price 9,575; −910,666 unrealized),
   Stockbit RDN cash 915,936. BEI ARB is 7%/day until 31 Dec 2026, minimum price Rp1.
+  SINI context: rallied on news that CUAN (Petrindo) is negotiating to take SINI over (~18,300 on
+  23 Sep); pre-rally level ~7,350 (24 Aug snapshot); foreign net buy Rp26bn on 27 Oct. Event-driven:
+  can fall back toward the pre-rumour level or jump on a takeover/tender offer.
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
