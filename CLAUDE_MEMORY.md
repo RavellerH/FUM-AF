@@ -12,6 +12,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | MAMAN BUDIMAN | ayah (father) | Help / pass-through → `Third-Party Transfer` unless the user says otherwise |
 | PATIMAH AHMAD | istri (wife) | Transfers to her (BSI or Flip) = kebutuhan rumah → `Household` |
 | FAZA HAFIYAN MASJHUR | side-income source | Money from Faza → `Side Income`, also when it arrives via the user's BCA |
+| SALMA RUFAIDA BUDIMAN (SMBC) | family | Oct 2026: 2,500,000 help for the mother-in-law's funeral → `Reimbursement` |
 | PUSPITA YANTI HJ. | pass-through sender | `Third-Party Transfer` (Jul 2026: 2,000,000 passed on to Faza) |
 | MUHAMAD FARHAN BUDIMAN | the user's own BCA | Depends on whose money it is — ask |
 | Kavi | anak (child) | Khitan Jun 2026; dirawat di RSIA Limijati Aug 2026 |
@@ -43,6 +44,16 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   (BBCA, BBRI, BMRI) were sold. Snapshot 2026-10-28 (screenshots, in data/portfolio.md): only SINI
   3 lots left (avg 12,610.55 — 2 lots bought after 1 Sep; price 9,575; −910,666 unrealized),
   Stockbit RDN cash 915,936. BEI ARB is 7%/day until 31 Dec 2026, minimum price Rp1.
+  SINI context: rallied on news that CUAN (Petrindo) is negotiating to take SINI over (~18,300 on
+  23 Sep); pre-rally level ~7,350 (24 Aug snapshot); foreign net buy Rp26bn on 27 Oct. Event-driven:
+  can fall back toward the pre-rumour level or jump on a takeover/tender offer.
+  Fundamentals (press, 2026-10-29): 481M shares (mcap ≈4.6T at 9,575); FY2025 revenue 534B, loss ~42B,
+  equity −763B; H1 2026 "profit" ~680B is a one-off negative-goodwill gain from buying PT Kemilau Mulia
+  Sakti (Rp1.73T, Jun 2026), equity still −125B, related-party debt 1.52T. CUAN holds 27.78%, no binding
+  deal as of 30 Sep (Dec 2025 attempt was halted); a completed takeover would trigger a tender offer.
+- 2026-10-29: User DECIDED TO HOLD all 3 SINI lots as a deliberate bet on the CUAN takeover, accepting
+  the risk (supersedes "exit all stocks" for SINI). Don't push them to sell again; treat SINI as ~0 in
+  survival planning, and flag only real news (deal signed/cancelled, tender offer price).
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
@@ -56,10 +67,21 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   DCA rules: Rp500–600K/month (start ~450K = monthly surplus until salary is paid), bought after
   Bu Nina's transfer, skipped in an emergency month. All DCA goes to HYPE until it reaches 30%;
   afterwards each month buy whichever asset is below its target weight (no selling to rebalance).
-  HYPE (and new BTC) via FLOQ; existing BTC stays on Indodax. Proceeds (T+2 to RDN) become the first
+  HYPE (and new BTC) via FLOQ; existing BTC stays on Indodax.
+- 2026-10-28: Stock loss estimate (Stockbit): equity ≈5,612,678 on 1 Sep (stocks 5,446,500 + ~166K cash)
+  → 3,788,436 on 28 Oct (−1.82M, −32.5%); vs cost ≈5,888,248 → −2.10M (−35.7%), assuming no RDN
+  withdrawals since 1 Sep. Exact lifetime loss needs Stockbit realized P&L / deposit history.
+- 2026-10-28: User wants to try Variational Omni (omni.variational.io, zero-fee RFQ perps on Arbitrum)
+  to learn and farm points (VAR TGE expected Q4 2026). Advised: small capped "tuition" amount, ≤2x, not
+  from the survival budget. Proceeds (T+2 to RDN) become the first
   survival reserve. Waiting for the actual sale amounts to record the snapshot/realized loss.
-- Oct 2026 has one-off costs: trip to Bogor for the funeral of the user's mother-in-law (wife
-  Patimah's mother). Treat those rows as extraordinary when reviewing October, not as overspending.
+- Oct 2026 one-off: trip to Bogor (14–16 Oct) for the funeral of the user's mother-in-law (wife
+  Patimah's mother). User-confirmed: all trip/funeral rows → new category `Duka & Keluarga` (counted in
+  Expenses, shown separately; 3,571,266 incl. 2M cash withdrawn); Salma 2.5M + Aulia 2M = help for the
+  funeral → `Reimbursement` (aid offsets Expenses in Net).
+  Also: 300K from the user's own DANA (25 Oct) = funeral help → `Reimbursement`. Wife's class: paid Dita
+  469K (5 Oct), refunded (15 Oct) → both `Third-Party Transfer`; re-paid via Flip for November.
+  Buminioka / Absolute Drink / Jendela Alam = wisata → `Entertainment`; IKEA + Klik Indomaret → `Household`.
 - Mandiri balance 2,500,000 on 2026-10-19 (≈5.3M spent Oct 1–19 incl. the funeral trip).
 
 ## Month status
@@ -68,6 +90,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-01 … 2026-07 | locked |
 | 2026-08 | locked (2026-10-03) |
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
+| 2026-10 | 1–28 Oct imported and reviewed with the user on 2026-10-29 (4 tiny rows left: M.Amud Royal Jaya ×2, Midtrans 20K, 6A6V Pancawarna). When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
+| 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
 
 ## Open questions (ask, then move the answer above and delete the line)
 - URGENT (survival plan):
@@ -75,7 +99,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
   when next?, Innova tax/service, classes); can father help with Innova fuel; what the ~850K/month
   cash withdrawals are for; OK to pause BTC DCA; which assets may be sold and minimum balance.
-- Sep 2026 Uncategorized: WijayaPay ×5 (345K), Flip without note ×3 (161K), GoPay Customer
+- Sep 2026 Uncategorized: WijayaPay ×5 (345K; in Jan/Feb/Jul WijayaPay was `Investment` — maybe Stockbit/crypto top-ups?), Flip without note ×3 (161K), GoPay Customer
   081322808849 ×2 (120K), Midtrans 95K (by pass dari Salma?), Finpay 76K, IDM QRIS LIVIN 33K,
   M.Amud Royal Jaya 10K.
 - Aug 2026: ShopeePay ×6 are `Third-Party Transfer` (hidden from KPI) — titipan or own spending?
@@ -84,6 +108,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.
+- 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
+- 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
 - 2026-10-28: Nansen screenshot: Hyperliquid balance is 1.05 HYPE (not USDC) — recorded as `crypto_investing`, `crypto_trading` set to 0; added SOL, precise ETH.
 - 2026-10-28: Investment page: allocation donut (`AllocationPie.tsx`, top 5 + Lainnya). Rabby NEAR/ETH/USDT recorded as `crypto_investing` with token amounts; Hyperliquid remainder $86.44.
 - 2026-10-28: Portfolio snapshot updated from screenshots (Stockbit, Indodax, Rabby, Phantom); 1 Sep moved to history. USD/IDR 18,000 assumed (app FX API unreachable from the sandbox).

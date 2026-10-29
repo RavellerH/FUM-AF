@@ -2,6 +2,7 @@
 [
   "Admin Fee",
   "Cash",
+  "Duka & Keluarga",
   "Education",
   "Entertainment",
   "Family",

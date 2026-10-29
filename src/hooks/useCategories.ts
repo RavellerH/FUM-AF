@@ -6,7 +6,7 @@ import type { Category } from '../types/index';
 const PATH = 'categories.md';
 
 const DEFAULT_CATEGORIES = [
-  'Admin Fee', 'Cash', 'Entertainment', 'Family', 'Food & Dining', 'Freelance',
+  'Admin Fee', 'Cash', 'Duka & Keluarga', 'Entertainment', 'Family', 'Food & Dining', 'Freelance',
   'Healthcare', 'Home Maintenance', 'Household', 'Housing', 'Income',
   'Insurance', 'Investment', 'Loan', 'Refund', 'Reimbursable',
   'Reimbursement', 'Salary', 'Services', 'Shopping', 'Side Income', 'Third-Party Transfer',
