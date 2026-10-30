@@ -59,6 +59,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - 2026-10-29: User DECIDED TO HOLD all 3 SINI lots as a deliberate bet on the CUAN takeover, accepting
   the risk (supersedes "exit all stocks" for SINI). Don't push them to sell again; treat SINI as ~0 in
   survival planning, and flag only real news (deal signed/cancelled, tender offer price).
+- 2026-10-30: User withdrew ALL Stockbit trading balance (≈915,936 per the 28 Oct snapshot; amount and
+  destination to confirm) because Indonesian stocks kept falling. Exit rule set by the user: if SINI
+  falls to the 7,000s, cut loss 1 lot (keep 2 as the takeover bet). data/portfolio.md still lists the
+  RDN cash under savings until the next snapshot.
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
