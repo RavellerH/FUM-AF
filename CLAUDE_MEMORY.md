@@ -110,6 +110,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
 
 ## Open questions (ask, then move the answer above and delete the line)
+- 2026-11-01: user called Bu Nina's monthly 6M "gaji dari Bu Nina" — is Nina the user's employer/supervisor
+  (she also reimburses Lab costs), making the 6M `Salary` rather than `Family`? Confirm before recategorizing.
+  November 6M not yet received (expected late); cash ~898K (Mandiri 400K + Indodax IDR ~498K). User asked
+  for side-income ideas.
 - URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
