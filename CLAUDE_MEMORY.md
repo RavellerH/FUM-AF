@@ -7,7 +7,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 ## People
 | In statement | Who | Categorize as |
 |---|---|---|
-| NINA SITI AMINAH | Bu Nina, family support | 6,000,000/month → `Family`. Other amounts repay Lab work → `Reimbursement` |
+| NINA SITI AMINAH | Bu Nina, distributes the user's salary from LGU (Lab) | 6,000,000/month = salary → `Salary`. Other amounts repay Lab work → `Reimbursement` |
 | AULIA HANIFA BUDIMAN | family | Repays Claude subscription and fronted costs (e.g. servis motor) → `Reimbursement`. Sent `Family` support in Jan–May 2026 |
 | MAMAN BUDIMAN | ayah (father) | Help / pass-through → `Third-Party Transfer` unless the user says otherwise |
 | PATIMAH AHMAD | istri (wife) | Transfers to her (BSI or Flip) = kebutuhan rumah → `Household` |
@@ -110,10 +110,6 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
 
 ## Open questions (ask, then move the answer above and delete the line)
-- 2026-11-01: user called Bu Nina's monthly 6M "gaji dari Bu Nina" — is Nina the user's employer/supervisor
-  (she also reimburses Lab costs), making the 6M `Salary` rather than `Family`? Confirm before recategorizing.
-  November 6M not yet received (expected late); cash ~898K (Mandiri 400K + Indodax IDR ~498K). User asked
-  for side-income ideas.
 - URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
@@ -128,6 +124,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
 - 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
 - 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.
 - 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
