@@ -63,6 +63,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   destination to confirm) because Indonesian stocks kept falling. Exit rule set by the user: if SINI
   falls to the 7,000s, cut loss 1 lot (keep 2 as the takeover bet). data/portfolio.md still lists the
   RDN cash under savings until the next snapshot.
+- 2026-11-01: Mandiri balance ~400,000. User plans to DCA BTC on 1 Nov (not HYPE, since HYPE rose; believes
+  BTC is bottoming per their own ~517-day cycle count) and to sell SINI if the salary is still not paid
+  on 2 Nov. Advised: skip the November buy until Bu Nina's 6M arrives and a month's survival budget is
+  covered; don't buy new risk assets while selling others to fund living costs.
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
