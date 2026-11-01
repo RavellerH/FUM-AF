@@ -67,6 +67,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   BTC is bottoming per their own ~517-day cycle count) and to sell SINI if the salary is still not paid
   on 2 Nov. Advised: skip the November buy until Bu Nina's 6M arrives and a month's survival budget is
   covered; don't buy new risk assets while selling others to fund living costs.
+  Clarified 2026-11-01: the ~900K Stockbit withdrawal was spent on living costs; 500,000 deposited to
+  Indodax (2,000 fee → ~498K IDR there, for the BTC DCA); Mandiri ~400,000. data/portfolio.md (28 Oct)
+  still shows Stockbit RDN cash 915,936 and no Indodax IDR — fix at the next screenshot snapshot.
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
