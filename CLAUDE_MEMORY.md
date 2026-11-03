@@ -39,6 +39,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   RDN cash 39,223. Portfolio snapshot updated (stocks/RDN only; crypto values carried from 28 Oct,
   Indodax IDR ~498.5K added). TMPO fundamentals: revenue falling (2025 Rp211B −17%, H1 2026 −4%),
   H1 2026 net loss Rp6.6B, no dividend — a speculative trade, not a fundamental buy.
+  User's stated reason: followed finfluencer Timothy Ronald's entry; may add more TMPO on 2026-11-04.
+  Advised: cap new money at the November surplus (~450K), total TMPO ≤ ~1.25M, stop-loss at the new average.
 - New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
   (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
   `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
