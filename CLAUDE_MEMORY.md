@@ -43,6 +43,11 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   Advised: cap new money at the November surplus (~450K), total TMPO ≤ ~1.25M, stop-loss at the new average.
   User-confirmed 2026-11-03: TMPO is a TACTICAL TRADE, not an investment — judge it by its trade plan
   (stop at entry ~212, scale out ~+25% ≈ 264, trailing stop, 3–5 day time stop), not by fundamentals.
+- Stock plan (user, 2026-11-03): one more TMPO buy on 4 Nov (wants a market order — advised a limit order);
+  take profit around +20–25%, then rotate the Stockbit money into dividend/defensive banks, mostly BBCA
+  plus some BMRI. Keep SINI (at least 1 lot) and exit it only if it falls below 7,000. Advised: build the
+  bank position gradually from trade proceeds (not new salary money) — the MSCI overhang until Jun 2027
+  hits big banks hardest, which is why they were sold in October.
 - New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
   (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
   `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
