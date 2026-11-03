@@ -7,7 +7,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 ## People
 | In statement | Who | Categorize as |
 |---|---|---|
-| NINA SITI AMINAH | Bu Nina, family support | 6,000,000/month → `Family`. Other amounts repay Lab work → `Reimbursement` |
+| NINA SITI AMINAH | Bu Nina, distributes the user's salary from LGU (Lab) | 6,000,000/month = salary → `Salary`. Other amounts repay Lab work → `Reimbursement` |
 | AULIA HANIFA BUDIMAN | family | Repays Claude subscription and fronted costs (e.g. servis motor) → `Reimbursement`. Sent `Family` support in Jan–May 2026 |
 | MAMAN BUDIMAN | ayah (father) | Help / pass-through → `Third-Party Transfer` unless the user says otherwise |
 | PATIMAH AHMAD | istri (wife) | Transfers to her (BSI or Flip) = kebutuhan rumah → `Household` |
@@ -32,12 +32,29 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   686,330 returned 26 Aug → `Refund`. Maman: 4,000,000 on 7 Aug withdrawn the same day
   (pass-through); 5,000,000 on 29 Aug = help for Kavi's care (`Third-Party Transfer`).
 
-## Current situation (2026-10-03)
+## Current situation (updated 2026-11-03)
+- November salary (Bu Nina / LGU, 6,000,000) arrived on 2026-11-03 — later than October (6 Oct).
+- 2026-11-03 Stockbit: sold 1 SINI lot at a loss and bought TMPO 34 lots (avg 212.31, momentum after a
+  finfluencer took 1.26%) + DEWA 2 lots (avg 234.35); SINI 2 lots left (avg 12,610.55, price 8,000);
+  RDN cash 39,223. Portfolio snapshot updated (stocks/RDN only; crypto values carried from 28 Oct,
+  Indodax IDR ~498.5K added). TMPO fundamentals: revenue falling (2025 Rp211B −17%, H1 2026 −4%),
+  H1 2026 net loss Rp6.6B, no dividend — a speculative trade, not a fundamental buy.
+  User's stated reason: followed finfluencer Timothy Ronald's entry; may add more TMPO on 2026-11-04.
+  Advised: cap new money at the November surplus (~450K), total TMPO ≤ ~1.25M, stop-loss at the new average.
+- New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
+  (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
+  `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
+  (or origin/main) before anything else. Only the user can switch the default branch (proxy refuses).
 - Salary from the user's job is not paid yet; the user must live on the Mandiri balance
   (last known 1,808,694 on 2026-09-30). Spending runs ~1.9M/month above income at the Sept
   pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
-- Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (update it when October data or
-  the answers below arrive).
+- Report: https://claude.ai/artifact/UF5czDyVaCk2cm28njveEo (v2 updated 2026-10-29 with Oct 1–28 data;
+  update again when the full October/November statements or salary news arrive).
+- 2026-10-29 analysis: routine spending ~7.4–7.7M/month for Jul–Oct vs routine income ~6.2M → structural
+  gap ~1.2–1.6M/month, covered so far by family help. Stable cash on 28 Oct: Mandiri 1,018,152 +
+  Stockbit RDN 915,936 ≈ 1.93M (≈1.5 months at the Oct pattern). Advised: cut to the 5.55M survival
+  budget (Household, eating out, wisata), postpone the HYPE DCA until spending < income or salary is
+  paid, sell BTC before HYPE if cash < ~2M.
 - 2026-10-19: Bu Nina's October 6,000,000 arrived. IHSG crash (MSCI consultation to move Indonesia
   to Standalone; decision end of Jun 2027): the user decided to EXIT all stocks. Stock equity was
   4,100,000 on 2026-10-19 and ~3.x million on 2026-10-20 (vs 5,446,500 on 2026-09-01). By 2026-10-20 the big banks
@@ -54,6 +71,17 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - 2026-10-29: User DECIDED TO HOLD all 3 SINI lots as a deliberate bet on the CUAN takeover, accepting
   the risk (supersedes "exit all stocks" for SINI). Don't push them to sell again; treat SINI as ~0 in
   survival planning, and flag only real news (deal signed/cancelled, tender offer price).
+- 2026-10-30: User withdrew ALL Stockbit trading balance (≈915,936 per the 28 Oct snapshot; amount and
+  destination to confirm) because Indonesian stocks kept falling. Exit rule set by the user: if SINI
+  falls to the 7,000s, cut loss 1 lot (keep 2 as the takeover bet). data/portfolio.md still lists the
+  RDN cash under savings until the next snapshot.
+- 2026-11-01: Mandiri balance ~400,000. User plans to DCA BTC on 1 Nov (not HYPE, since HYPE rose; believes
+  BTC is bottoming per their own ~517-day cycle count) and to sell SINI if the salary is still not paid
+  on 2 Nov. Advised: skip the November buy until Bu Nina's 6M arrives and a month's survival budget is
+  covered; don't buy new risk assets while selling others to fund living costs.
+  Clarified 2026-11-01: the ~900K Stockbit withdrawal was spent on living costs; 500,000 deposited to
+  Indodax (2,000 fee → ~498K IDR there, for the BTC DCA); Mandiri ~400,000. data/portfolio.md (28 Oct)
+  still shows Stockbit RDN cash 915,936 and no Indodax IDR — fix at the next screenshot snapshot.
 - 2026-10-28: User plans to start a HYPE DCA from November, Rp600,000 (asked Rabby/Hyperliquid vs
   FLOQ; FLOQ lists HYPE/IDR with a claimed zero fee). Last recorded BTC: 0.0049615 on Indodax
   (1 Sep 2026 snapshot); 2026-10-28: BTC 0.00569446 = 8,563,169 (+15% unrealized) and the user
@@ -108,6 +136,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
+- 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
+- 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
 - 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.
 - 2026-10-29: Oct 1–28 imported. Maman 3.8M + 1.1M (10 Oct) = same-day pass-through for Lab payments (Deni Hamdani, Hendri Haryono RAM) → Reimbursement/Reimbursable.
 - 2026-10-29: User holds SINI (3 lots) as a takeover bet; stock exit otherwise complete.
