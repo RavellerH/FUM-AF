@@ -41,6 +41,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   H1 2026 net loss Rp6.6B, no dividend — a speculative trade, not a fundamental buy.
   User's stated reason: followed finfluencer Timothy Ronald's entry; may add more TMPO on 2026-11-04.
   Advised: cap new money at the November surplus (~450K), total TMPO ≤ ~1.25M, stop-loss at the new average.
+  User-confirmed 2026-11-03: TMPO is a TACTICAL TRADE, not an investment — judge it by its trade plan
+  (stop at entry ~212, scale out ~+25% ≈ 264, trailing stop, 3–5 day time stop), not by fundamentals.
 - New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
   (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
   `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
