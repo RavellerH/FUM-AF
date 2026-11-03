@@ -32,7 +32,17 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   686,330 returned 26 Aug → `Refund`. Maman: 4,000,000 on 7 Aug withdrawn the same day
   (pass-through); 5,000,000 on 29 Aug = help for Kavi's care (`Third-Party Transfer`).
 
-## Current situation (2026-10-03)
+## Current situation (updated 2026-11-03)
+- November salary (Bu Nina / LGU, 6,000,000) arrived on 2026-11-03 — later than October (6 Oct).
+- 2026-11-03 Stockbit: sold 1 SINI lot at a loss and bought TMPO 34 lots (avg 212.31, momentum after a
+  finfluencer took 1.26%) + DEWA 2 lots (avg 234.35); SINI 2 lots left (avg 12,610.55, price 8,000);
+  RDN cash 39,223. Portfolio snapshot updated (stocks/RDN only; crypto values carried from 28 Oct,
+  Indodax IDR ~498.5K added). TMPO fundamentals: revenue falling (2025 Rp211B −17%, H1 2026 −4%),
+  H1 2026 net loss Rp6.6B, no dividend — a speculative trade, not a fundamental buy.
+- New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
+  (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
+  `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
+  (or origin/main) before anything else. Only the user can switch the default branch (proxy refuses).
 - Salary from the user's job is not paid yet; the user must live on the Mandiri balance
   (last known 1,808,694 on 2026-09-30). Spending runs ~1.9M/month above income at the Sept
   pattern. Proposed survival budget 5,550,000/month (pause BTC DCA, cut eating out and cash).
@@ -124,6 +134,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
 - 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
 - 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
 - 2026-10-29: Added category `Duka & Keluarga` (user-approved) for funeral/family-emergency costs.

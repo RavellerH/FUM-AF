@@ -3,14 +3,26 @@
   "stocks": [
     {
       "symbol": "SINI",
-      "lots": 3,
-      "value_idr": 2872500
+      "lots": 2,
+      "value_idr": 1600000
+    },
+    {
+      "symbol": "TMPO",
+      "lots": 34,
+      "value_idr": 795600
+    },
+    {
+      "symbol": "DEWA",
+      "lots": 2,
+      "value_idr": 44400
     }
   ],
-  "stocks_pnl_idr": -910666,
-  "stocks_pnl_pct": -19.38,
+  "stocks_pnl_idr": -850862,
+  "stocks_pnl_pct": -25.55,
   "stocks_sectors": {
-    "Industri": 100.0
+    "Industri": 65.57,
+    "Barang Konsumen Non-Primer": 32.61,
+    "Energi": 1.82
   },
   "crypto_trading": {
     "platform": "Hyperliquid",
@@ -80,18 +92,24 @@
       "symbol": "USDT",
       "amount": 0.01750293,
       "value_idr": 312
+    },
+    {
+      "platform": "Indodax",
+      "symbol": "IDR",
+      "amount": 498540,
+      "value_idr": 498540
     }
   ],
   "savings": [
     {
       "name": "Stockbit RDN (cash)",
-      "value_idr": 915936
+      "value_idr": 39223
     },
     {
       "name": "Deviota Jejaring Instrumen",
       "value_idr": 0
     }
   ],
-  "updated_at": "2026-10-28"
+  "updated_at": "2026-11-03"
 }
 ---
