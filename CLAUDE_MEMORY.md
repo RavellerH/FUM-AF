@@ -51,6 +51,8 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - 2026-11-06: User says SINI is sold (all 3 lots by now, apparently — confirm). Realized loss ≈ Rp1.4–1.7M on
   cost 3,783,166 (avg 12,610.55), depending on sale prices (≈1.38M if all at 8,000, ≈1.53M at 7,500).
   Exact figure needs Stockbit History sale prices. Supersedes the "hold SINI as takeover bet" note.
+  User: remaining 2 lots sold at 7,100 (cut-loss rule "7,000s" executed). First lot sold 3 Nov at ~8,000
+  (assumed, not confirmed). Total realized SINI loss ≈ Rp1.56M (1.65M if all three were at 7,100).
 - 2026-11-06: TMPO suspended by BEI from the 5 Nov pre-opening (Peng-SPT-00224/BEI.WAS/11-2026), no
   reopening date; last trade ~Rp292 (+24.79% on 4 Nov). Previous halt (27 Aug) reopened with −14.29% on
   day one. Plan: treat the position as locked (not cash); on reopening, sell part at pre-opening if
