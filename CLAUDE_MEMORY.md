@@ -48,6 +48,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   plus some BMRI. Keep SINI (at least 1 lot) and exit it only if it falls below 7,000. Advised: build the
   bank position gradually from trade proceeds (not new salary money) — the MSCI overhang until Jun 2027
   hits big banks hardest, which is why they were sold in October.
+- 2026-11-06: User says SINI is sold (all 3 lots by now, apparently — confirm). Realized loss ≈ Rp1.4–1.7M on
+  cost 3,783,166 (avg 12,610.55), depending on sale prices (≈1.38M if all at 8,000, ≈1.53M at 7,500).
+  Exact figure needs Stockbit History sale prices. Supersedes the "hold SINI as takeover bet" note.
 - New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
   (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
   `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
