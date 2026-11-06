@@ -54,6 +54,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   User: remaining 2 lots sold at 7,300 (corrected from 7,100; cut-loss rule "7,000s" executed). First lot
   sold 3 Nov at ~8,000 (assumed, not confirmed). Total realized SINI loss ≈ Rp1.52M (1.59M if all three
   were at 7,300). Proceeds of the 2 lots ≈ 1,456,000 net in Stockbit.
+- 2026-11-06: User changed plan: put the SINI proceeds (~1.46M) into HYPE instead of BBCA/BMRI ("not that
+  painful"). With BTC ~9.06M (incl. the 498K Indodax buy) and HYPE ~2.53M (28 Oct prices), +1.46M puts
+  HYPE at ~30.6% of BTC+HYPE ≈ the 70:30 target. Advised: keep a 7–10 day cash buffer first, buy in
+  2–3 tranches via FLOQ, and stop adding HYPE once it is ≥30%.
 - 2026-11-06: TMPO suspended by BEI from the 5 Nov pre-opening (Peng-SPT-00224/BEI.WAS/11-2026), no
   reopening date; last trade ~Rp292 (+24.79% on 4 Nov). Previous halt (27 Aug) reopened with −14.29% on
   day one. Plan: treat the position as locked (not cash); on reopening, sell part at pre-opening if
