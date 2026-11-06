@@ -58,6 +58,11 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   painful"). With BTC ~9.06M (incl. the 498K Indodax buy) and HYPE ~2.53M (28 Oct prices), +1.46M puts
   HYPE at ~30.6% of BTC+HYPE ≈ the 70:30 target. Advised: keep a 7–10 day cash buffer first, buy in
   2–3 tranches via FLOQ, and stop adding HYPE once it is ≥30%.
+- 2026-11-07 HYPE chart (Hyperliquid spot screenshot): 77.23 (−7.6% 24h), below EMA7 81.35 / EMA21 82.38,
+  above MA200 67.79; Stoch RSI ~26/41 falling; repeated rejection near 100. User's Hyperliquid spot
+  balance is only 0.09 USDC + 0.0067 HYPE (the 1.05 HYPE is elsewhere, likely staked). Strategy given:
+  ~$80 (1.46M) in 3 limit tranches (~77, ~72, ~68 MA200), or buy the rest on a daily close back above
+  ~82; spot only, maker orders; stop adding at 30% allocation.
 - 2026-11-06: TMPO suspended by BEI from the 5 Nov pre-opening (Peng-SPT-00224/BEI.WAS/11-2026), no
   reopening date; last trade ~Rp292 (+24.79% on 4 Nov). Previous halt (27 Aug) reopened with −14.29% on
   day one. Plan: treat the position as locked (not cash); on reopening, sell part at pre-opening if
