@@ -36,6 +36,13 @@
     "created_at": "2026-10-03T11:34:02.766589+00:00"
   },
   {
+    "id": "47e73c78-d8f5-48c8-877c-1cf7a30326f6",
+    "pattern": "MANDIRI LESTARI SENTOS",
+    "category": "Food & Dining",
+    "type": null,
+    "created_at": "2026-11-24T23:13:00.941030+00:00"
+  },
+  {
     "id": "bbde790c-acb5-415f-855c-1aba8433add3",
     "pattern": "TAUFIQ SUMPENO",
     "category": "Healthcare",
