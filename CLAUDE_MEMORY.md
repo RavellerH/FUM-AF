@@ -24,7 +24,10 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   proof PNG were sent 2026-11-24; who repays is not stated yet.
 - 2026-11-23: user withdrew ~1,000,000 from Indodax ("tabungan BTC") during the Bogor trip — Mandiri got 490,277 +
   498,560 from PT Sinar Digital Terdepan (`Investment`, neutral). Likely = the unused ~498.5K IDR deposit + ~0.5M of
-  BTC sold (confirm). data/portfolio.md (3 Nov) still shows the old BTC and the Indodax IDR — refresh at next snapshot.
+  BTC sold (confirm). Indodax 2026-11-24: BTC 0.00536239 = Rp6,060,085 (avg cost ≈Rp1.312B/BTC, −14.2%
+  unrealized), IDR 0. Since 28 Oct: −0.00033207 BTC (−5.8%, sold for the trip) while the BTC price fell −24.8%
+  (1.504B → 1.130B IDR); of the −2.50M value drop, −2.00M is price and −0.50M is units sold. Portfolio snapshot
+  2026-11-24 updates Indodax only (other values carried from 3 Nov).
 - Proof crops from a statement: decrypt the xlsx, re-save it with openpyxl (LibreOffice can't open the raw
   decrypted file), set landscape + fit-to-width, `soffice --headless --convert-to pdf`, then crop rows by the
   statement "No" with pdfplumber/pypdfium2; hide the account number and the Saldo column. System python's
@@ -176,6 +179,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-24: Portfolio snapshot 2026-11-24 (Indodax BTC/XEC/USDT updated, IDR entry removed); 3 Nov snapshot moved to history.
 - 2026-11-24: Nov 1–24 imported; Bogor trip rows → Reimbursable; reimbursement PDF/PNG with statement crops delivered.
 - 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
 - 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
