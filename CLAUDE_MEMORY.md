@@ -163,8 +163,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 
 ## Open questions (ask, then move the answer above and delete the line)
 - 2026-11-24: Bogor-trip reimbursement APPROVED ONLY 1,000,000 of 1,200,000 (rows debited 1,200,720 incl. Flip fees).
-  The ~200K not approved becomes own spending (`Duka & Keluarga`). Asked which item was cut and whether the 1M has
-  arrived (record it as `Reimbursement` when it lands).
+  Not itemised by the approver → the 24 Nov 12:59 e-toll top-up 200,000 moved to `Duka & Keluarga`; the other trip
+  rows stay `Reimbursable` (1,000,720; the 720 Flip fees will stay as a tiny unmatched gap). The 1M was RECEIVED after
+  24 Nov — when the next statement is imported, tag that incoming transfer `Reimbursement`.
 - URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
@@ -179,6 +180,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-24: Bogor reimbursement: 1M approved and received; unapproved 200K (e-toll 24 Nov) → Duka & Keluarga.
 - 2026-11-24: Portfolio snapshot 2026-11-24 (Indodax BTC/XEC/USDT updated, IDR entry removed); 3 Nov snapshot moved to history.
 - 2026-11-24: Nov 1–24 imported; Bogor trip rows → Reimbursable; reimbursement PDF/PNG with statement crops delivered.
 - 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
