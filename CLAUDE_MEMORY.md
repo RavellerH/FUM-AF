@@ -22,6 +22,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   lodging 350,000 (DP 50K 22 Nov + 300K 23 Nov via Flip; Flip fees 720), fuel 400,000 (SPBU Purwakarta 23 Nov,
   SPBU Karawang 24 Nov), e-toll 450,000 (100K 23 Nov, 200K + 150K 24 Nov) = 1,200,000. Reimbursement list PDF +
   proof PNG were sent 2026-11-24; who repays is not stated yet.
+- 2026-11-23: user withdrew ~1,000,000 from Indodax ("tabungan BTC") during the Bogor trip — Mandiri got 490,277 +
+  498,560 from PT Sinar Digital Terdepan (`Investment`, neutral). Likely = the unused ~498.5K IDR deposit + ~0.5M of
+  BTC sold (confirm). data/portfolio.md (3 Nov) still shows the old BTC and the Indodax IDR — refresh at next snapshot.
 - Proof crops from a statement: decrypt the xlsx, re-save it with openpyxl (LibreOffice can't open the raw
   decrypted file), set landscape + fit-to-width, `soffice --headless --convert-to pdf`, then crop rows by the
   statement "No" with pdfplumber/pypdfium2; hide the account number and the Saldo column. System python's
