@@ -18,6 +18,14 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | Kavi | anak (child) | Khitan Jun 2026; dirawat di RSIA Limijati Aug 2026 |
 
 ## Merchant notes and exceptions
+- Nov 2026 Bogor trip (22–24 Nov, 40-day memorial of the mother-in-law) → `Reimbursable` (user is claiming it):
+  lodging 350,000 (DP 50K 22 Nov + 300K 23 Nov via Flip; Flip fees 720), fuel 400,000 (SPBU Purwakarta 23 Nov,
+  SPBU Karawang 24 Nov), e-toll 450,000 (100K 23 Nov, 200K + 150K 24 Nov) = 1,200,000. Reimbursement list PDF +
+  proof PNG were sent 2026-11-24; who repays is not stated yet.
+- Proof crops from a statement: decrypt the xlsx, re-save it with openpyxl (LibreOffice can't open the raw
+  decrypted file), set landscape + fit-to-width, `soffice --headless --convert-to pdf`, then crop rows by the
+  statement "No" with pdfplumber/pypdfium2; hide the account number and the Saldo column. System python's
+  cryptography is broken in these containers — use a venv (`python3 -m venv`) for msoffcrypto/reportlab.
 - `FLIPTECH LENTERA INS` (Flip) is a generic transfer service: the note decides the category
   (BTC INVEST → Investment, patimah → Household, beli ikan MPASI → Household, kelas →
   Education, Lab / "by pass dari Bu nina" → Reimbursable, Air Almandzar → Home Maintenance).
@@ -145,7 +153,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-08 | locked (2026-10-03) |
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 | 2026-10 | 1–28 Oct imported and reviewed with the user on 2026-10-29 (4 tiny rows left: M.Amud Royal Jaya ×2, Midtrans 20K, 6A6V Pancawarna). When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
-| 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
+| 2026-11 | 1–24 Nov imported 2026-11-24 and merged with the carried 16 Oct class row (146 rows); 21 rows still Uncategorized (questions asked). When the full statement arrives, carry categories over by date+amount+description |
 
 ## Open questions (ask, then move the answer above and delete the line)
 - URGENT (survival plan):
@@ -162,6 +170,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-24: Nov 1–24 imported; Bogor trip rows → Reimbursable; reimbursement PDF/PNG with statement crops delivered.
 - 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
 - 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
 - 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
