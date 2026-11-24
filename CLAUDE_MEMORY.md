@@ -159,6 +159,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-11 | 1–24 Nov imported 2026-11-24 and merged with the carried 16 Oct class row (146 rows); 21 rows still Uncategorized (questions asked). When the full statement arrives, carry categories over by date+amount+description |
 
 ## Open questions (ask, then move the answer above and delete the line)
+- PENDING (2026-11-24): Bogor-trip reimbursement (1,200,000; rows tagged `Reimbursable` in 2026-11) is NOT yet
+  approved — user will report. If rejected → recategorize those 7 rows to `Duka & Keluarga` (as in Oct); Nov
+  expense KPI then rises by 1.2M. Until then, plan cash as if it will NOT come back.
 - URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
