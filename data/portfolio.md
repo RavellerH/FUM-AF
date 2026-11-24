@@ -36,8 +36,8 @@
     {
       "platform": "Indodax",
       "symbol": "BTC",
-      "amount": 0.00569446,
-      "value_idr": 8563169
+      "amount": 0.00536239,
+      "value_idr": 6060085
     },
     {
       "platform": "Hyperliquid",
@@ -85,19 +85,13 @@
       "platform": "Indodax",
       "symbol": "XEC",
       "amount": 10412.32216525,
-      "value_idr": 1303
+      "value_idr": 954
     },
     {
       "platform": "Indodax",
       "symbol": "USDT",
       "amount": 0.01750293,
-      "value_idr": 312
-    },
-    {
-      "platform": "Indodax",
-      "symbol": "IDR",
-      "amount": 498540,
-      "value_idr": 498540
+      "value_idr": 320
     }
   ],
   "savings": [
@@ -110,6 +104,6 @@
       "value_idr": 0
     }
   ],
-  "updated_at": "2026-11-03"
+  "updated_at": "2026-11-24"
 }
 ---

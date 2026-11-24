@@ -18,6 +18,20 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | Kavi | anak (child) | Khitan Jun 2026; dirawat di RSIA Limijati Aug 2026 |
 
 ## Merchant notes and exceptions
+- Nov 2026 Bogor trip (22–24 Nov, 40-day memorial of the mother-in-law) → `Reimbursable` (user is claiming it):
+  lodging 350,000 (DP 50K 22 Nov + 300K 23 Nov via Flip; Flip fees 720), fuel 400,000 (SPBU Purwakarta 23 Nov,
+  SPBU Karawang 24 Nov), e-toll 450,000 (100K 23 Nov, 200K + 150K 24 Nov) = 1,200,000. Reimbursement list PDF +
+  proof PNG were sent 2026-11-24; who repays is not stated yet.
+- 2026-11-23: user withdrew ~1,000,000 from Indodax ("tabungan BTC") during the Bogor trip — Mandiri got 490,277 +
+  498,560 from PT Sinar Digital Terdepan (`Investment`, neutral). Likely = the unused ~498.5K IDR deposit + ~0.5M of
+  BTC sold (confirm). Indodax 2026-11-24: BTC 0.00536239 = Rp6,060,085 (avg cost ≈Rp1.312B/BTC, −14.2%
+  unrealized), IDR 0. Since 28 Oct: −0.00033207 BTC (−5.8%, sold for the trip) while the BTC price fell −24.8%
+  (1.504B → 1.130B IDR); of the −2.50M value drop, −2.00M is price and −0.50M is units sold. Portfolio snapshot
+  2026-11-24 updates Indodax only (other values carried from 3 Nov).
+- Proof crops from a statement: decrypt the xlsx, re-save it with openpyxl (LibreOffice can't open the raw
+  decrypted file), set landscape + fit-to-width, `soffice --headless --convert-to pdf`, then crop rows by the
+  statement "No" with pdfplumber/pypdfium2; hide the account number and the Saldo column. System python's
+  cryptography is broken in these containers — use a venv (`python3 -m venv`) for msoffcrypto/reportlab.
 - `FLIPTECH LENTERA INS` (Flip) is a generic transfer service: the note decides the category
   (BTC INVEST → Investment, patimah → Household, beli ikan MPASI → Household, kelas →
   Education, Lab / "by pass dari Bu nina" → Reimbursable, Air Almandzar → Home Maintenance).
@@ -41,6 +55,32 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
   H1 2026 net loss Rp6.6B, no dividend — a speculative trade, not a fundamental buy.
   User's stated reason: followed finfluencer Timothy Ronald's entry; may add more TMPO on 2026-11-04.
   Advised: cap new money at the November surplus (~450K), total TMPO ≤ ~1.25M, stop-loss at the new average.
+  User-confirmed 2026-11-03: TMPO is a TACTICAL TRADE, not an investment — judge it by its trade plan
+  (stop at entry ~212, scale out ~+25% ≈ 264, trailing stop, 3–5 day time stop), not by fundamentals.
+- Stock plan (user, 2026-11-03): one more TMPO buy on 4 Nov (wants a market order — advised a limit order);
+  take profit around +20–25%, then rotate the Stockbit money into dividend/defensive banks, mostly BBCA
+  plus some BMRI. Keep SINI (at least 1 lot) and exit it only if it falls below 7,000. Advised: build the
+  bank position gradually from trade proceeds (not new salary money) — the MSCI overhang until Jun 2027
+  hits big banks hardest, which is why they were sold in October.
+- 2026-11-06: User says SINI is sold (all 3 lots by now, apparently — confirm). Realized loss ≈ Rp1.4–1.7M on
+  cost 3,783,166 (avg 12,610.55), depending on sale prices (≈1.38M if all at 8,000, ≈1.53M at 7,500).
+  Exact figure needs Stockbit History sale prices. Supersedes the "hold SINI as takeover bet" note.
+  User: remaining 2 lots sold at 7,300 (corrected from 7,100; cut-loss rule "7,000s" executed). First lot
+  sold 3 Nov at ~8,000 (assumed, not confirmed). Total realized SINI loss ≈ Rp1.52M (1.59M if all three
+  were at 7,300). Proceeds of the 2 lots ≈ 1,456,000 net in Stockbit.
+- 2026-11-06: User changed plan: put the SINI proceeds (~1.46M) into HYPE instead of BBCA/BMRI ("not that
+  painful"). With BTC ~9.06M (incl. the 498K Indodax buy) and HYPE ~2.53M (28 Oct prices), +1.46M puts
+  HYPE at ~30.6% of BTC+HYPE ≈ the 70:30 target. Advised: keep a 7–10 day cash buffer first, buy in
+  2–3 tranches via FLOQ, and stop adding HYPE once it is ≥30%.
+- 2026-11-07 HYPE chart (Hyperliquid spot screenshot): 77.23 (−7.6% 24h), below EMA7 81.35 / EMA21 82.38,
+  above MA200 67.79; Stoch RSI ~26/41 falling; repeated rejection near 100. User's Hyperliquid spot
+  balance is only 0.09 USDC + 0.0067 HYPE (the 1.05 HYPE is elsewhere, likely staked). Strategy given:
+  ~$80 (1.46M) in 3 limit tranches (~77, ~72, ~68 MA200), or buy the rest on a daily close back above
+  ~82; spot only, maker orders; stop adding at 30% allocation.
+- 2026-11-06: TMPO suspended by BEI from the 5 Nov pre-opening (Peng-SPT-00224/BEI.WAS/11-2026), no
+  reopening date; last trade ~Rp292 (+24.79% on 4 Nov). Previous halt (27 Aug) reopened with −14.29% on
+  day one. Plan: treat the position as locked (not cash); on reopening, sell part at pre-opening if
+  price ≥ the +20–25% target. Need the user's current TMPO lots/avg (did they add on 4 Nov?).
 - New sessions start from the repo DEFAULT branch, which is still the old `claude/keen-heisenberg-qtPhp`
   (2026-11-03 session began with August memory). If CLAUDE.md mentions Supabase, run
   `git fetch origin && git checkout -B claude/adoring-euler-Xt0Pb origin/claude/adoring-euler-Xt0Pb`
@@ -119,9 +159,13 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | 2026-08 | locked (2026-10-03) |
 | 2026-09 | reviewed 2026-10-03; lock once the open questions below are answered |
 | 2026-10 | 1–28 Oct imported and reviewed with the user on 2026-10-29 (4 tiny rows left: M.Amud Royal Jaya ×2, Midtrans 20K, 6A6V Pancawarna). When the full statement arrives, import it to a temp copy and carry categories over by matching date+amount+description — don't `--force` over reviewed rows |
-| 2026-11 | already holds 1 carried-over row (16 Oct Flip 469,325 = wife's class for November, `Education`); merge the November import into it instead of overwriting |
+| 2026-11 | 1–24 Nov imported 2026-11-24 and merged with the carried 16 Oct class row (146 rows); 21 rows still Uncategorized (questions asked). When the full statement arrives, carry categories over by date+amount+description |
 
 ## Open questions (ask, then move the answer above and delete the line)
+- 2026-11-24: Bogor-trip reimbursement APPROVED ONLY 1,000,000 of 1,200,000 (rows debited 1,200,720 incl. Flip fees).
+  Not itemised by the approver → the 24 Nov 12:59 e-toll top-up 200,000 moved to `Duka & Keluarga`; the other trip
+  rows stay `Reimbursable` (1,000,720; the 720 Flip fees will stay as a tiny unmatched gap). The 1M was RECEIVED after
+  24 Nov — when the next statement is imported, tag that incoming transfer `Reimbursement`.
 - URGENT (survival plan):
   salary amount and expected date; will Bu Nina keep sending 6M/month; other money (BCA, cash,
   ShopeePay/GoPay); big bills due Oct–Dec (rent — Apr 25M was recorded as titipan, who pays and
@@ -136,6 +180,9 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-24: Bogor reimbursement: 1M approved and received; unapproved 200K (e-toll 24 Nov) → Duka & Keluarga.
+- 2026-11-24: Portfolio snapshot 2026-11-24 (Indodax BTC/XEC/USDT updated, IDR entry removed); 3 Nov snapshot moved to history.
+- 2026-11-24: Nov 1–24 imported; Bogor trip rows → Reimbursable; reimbursement PDF/PNG with statement crops delivered.
 - 2026-11-03: Salary 6M received; Stockbit rotated 1 SINI lot → TMPO/DEWA; portfolio snapshot 2026-11-03 (28 Oct moved to history).
 - 2026-11-01: User confirmed Bu Nina's 6M is the user's salary from LGU (Nina distributes it) → all Nina 6M rows `Family` → `Salary`. Nov salary late; cash ~898K (Mandiri 400K + Indodax IDR ~498K).
 - 2026-10-29: Oct 1–28 merged to main (PR #35); survival report v2 published.
