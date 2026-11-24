@@ -14,10 +14,14 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 | FAZA HAFIYAN MASJHUR | side-income source | Money from Faza → `Side Income`, also when it arrives via the user's BCA |
 | SALMA RUFAIDA BUDIMAN (SMBC) | family | Oct 2026: 2,500,000 help for the mother-in-law's funeral → `Reimbursement` |
 | PUSPITA YANTI HJ. | pass-through sender | `Third-Party Transfer` (Jul 2026: 2,000,000 passed on to Faza) |
-| MUHAMAD FARHAN BUDIMAN | the user's own BCA | Depends on whose money it is — ask |
+| MUHAMAD FARHAN BUDIMAN | the user's own BCA | Depends on whose money it is — ask. Nov 2026: BCA → Mandiri transfers were Stockbit withdrawals (RDN goes via BCA) → `Investment` |
 | Kavi | anak (child) | Khitan Jun 2026; dirawat di RSIA Limijati Aug 2026 |
 
 ## Merchant notes and exceptions
+- Nov 2026: Flip 860,325 (16 Nov) = villa dues paid from Maman's 1,000,000 (15 Nov) → both `Third-Party Transfer`; the
+  ~139,675 left over is the user's (not counted as income — the rows can't be split). ShopeePay 350K (22 Nov) =
+  shopping for the 40-day memorial → `Duka & Keluarga`. "MANDIRI LESTARI SENTOS…" = meals at rest area KM 97 (rule added).
+- 2026-11-24: user is exiting Indonesian stocks; only TMPO is left (and may turn negative).
 - Nov 2026 Bogor trip (22–24 Nov, 40-day memorial of the mother-in-law) → `Reimbursable` (user is claiming it):
   lodging 350,000 (DP 50K 22 Nov + 300K 23 Nov via Flip; Flip fees 720), fuel 400,000 (SPBU Purwakarta 23 Nov,
   SPBU Karawang 24 Nov), e-toll 450,000 (100K 23 Nov, 200K + 150K 24 Nov) = 1,200,000. Reimbursement list PDF +
@@ -180,6 +184,7 @@ category rules live in `data/rules.md`, accounting rules in `CLAUDE.md`, totals 
 - Tech debt: `src/` hardcodes "Hyperliquid" labels (Investment, Analysis) — derive from portfolio data.
 
 ## Decision log (newest first, one line each)
+- 2026-11-24: Nov answers applied (villa pass-through, memorial shopping, Stockbit withdrawals, KM 97 meals); 12 rows left Uncategorized.
 - 2026-11-24: Bogor reimbursement: 1M approved and received; unapproved 200K (e-toll 24 Nov) → Duka & Keluarga.
 - 2026-11-24: Portfolio snapshot 2026-11-24 (Indodax BTC/XEC/USDT updated, IDR entry removed); 3 Nov snapshot moved to history.
 - 2026-11-24: Nov 1–24 imported; Bogor trip rows → Reimbursable; reimbursement PDF/PNG with statement crops delivered.
